@@ -1,0 +1,39 @@
+parser:   read.magellan
+platform: 96
+wells:    A1->H12
+
+channels:
+    OD600: growth.asc
+    DHE:   dhe.asc
+
+factors:
+    strain:
+        A7->H12:  aifD
+        A1->H6:   S288C
+        
+    media:
+        A1->H6, A7->H12:  YNB
+        
+    H2O2.mM:
+        A1->H1:   0
+        A2->H2:   0.4
+        A3->H3:   0.6
+        A4->H4:   0.75
+        A5->H5:   1
+        A6->H6:   1.25
+        A7->H7:   0
+        A8->H8:   0.4
+        A9->H9:   0.6
+        A10->H10: 0.75
+        A11->H11: 1
+        A12->H12: 1.25
+        
+    DHE.ug.mL:
+        A1->A12:  0
+        B1->B12:  0.1
+        C1->C12:  0.2
+        D1->D12:  0.3
+        E1->E12:  0.4
+        F1->F12:  0.5
+        G1->G12:  0.6
+        H1->H12:  0.7
