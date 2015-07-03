@@ -1,15 +1,16 @@
 Package: plateKinetics
 Type: Package
-Title: Kinetic analysis of 96- and 384-well plate optical density, fluorescence intensity, and chemiluminescence readings.
+Title: Analysis of kinetics reads from multiwell plates.
 Version: 0.1
-Date: 2013-06-25
 Author: Gregg Whitworth
 Maintainer: Gregg Whitworth <whitwort@gmail.com>
-Description: This package provides a set of tools for analyzing optical density
-    data obtained from microbial cultures grown in 96- or 384-well plates.
-    Tools are include to help with optimized doubling time calculations as well
-    as data annotation and visualization.
+Description: This package provides a set of tools for analyzing absorbance and 
+  fluorescence intensity data recorded over time in multiwell plate format. 
+  Tools are include to help with optimized doubling time calculations as well 
+  as data annotation and visualization.
 URL: http://github.com/whitwort/plateKinetics
 BugReports: http://github.com/whitwort/plateKinetics/issues
-Suggests: 
 License: LGPL-3
+VignetteBuilder: knitr
+Suggests: knitr
+Imports: shiny, yaml

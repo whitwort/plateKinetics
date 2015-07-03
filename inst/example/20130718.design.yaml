@@ -1,3 +1,13 @@
+# A sample design file for a 96-well experiment with multiple channels and 
+# experimental factors.  
+#
+# See the 'design' vignette for complete documentation of this file format:  
+# > vignette('design', package = 'plateKinetics')
+
+# In this example data are loaded from .asc export files created by Megellan 
+# (Tecan).  See help for the 'read.magellan' function for the correct export 
+# parameters to use in your methods.
+
 parser:   read.magellan
 platform: 96
 wells:    A1->H12

@@ -1,12 +1,32 @@
-library(yaml)
-library(reshape2)
+#' @import yaml
 
-## API ##
-
-#' Load an experimental design and data files from a directory
+#' Load experimental design and source data.
+#' 
+#' This function loads an experimental design and source data files described by
+#' that design.  Both are checked for validity and consistency.  It returns an
+#' experiment object (a list), which is used as the input for all downstream
+#' analysis functions.
+#' 
+#' See the \link[=doc/design.html]{Design file} vignette for complete 
+#' documentation of the structure of a design \href{http://www.yaml.org/}{yaml}
+#' file (or R list structure).
+#' 
+#' @param projectPath A path to a directory where source files and (optionally)
+#'   a design file can be found.  Defaults to the current working directory.
+#' @param design A design object, usually created by \code{\link{loadDesign}}. 
+#'   By default an experimental design will be loaded from the first file found
+#'   in the \code{projectPath} that has a name ending in 'design.yaml'.
+#' 
+#' @return An experiment object (list) that serves as input to downstream
+#'   analysis functions.
+#' 
+#' @seealso \code{\link{loadDesign}} for finer control over loading a design
+#'   from a file or a list, \code{\link{writeDesign}} for creating a template
+#'   design.yaml file.
+#' 
 #' @export
 loadExperiment <- function( projectPath = getwd()
-                          , design = loadDesign(pickFile(projectPath, "design.yaml"))
+                          , design      = loadDesign(pickFile(projectPath, "design.yaml"))
                           ) {
   
   parser <- eval(parse(text = design$parser))
@@ -32,15 +52,29 @@ loadExperiment <- function( projectPath = getwd()
   
 }
 
+
+#' Load a design from a file or R list
+#' 
+#' This function should always be used to load design information, whether from
+#' a yaml file or R list structure, because it performs various validation and
+#' consistency checks.  It also injects reasonable defaults for missing
+#' parameters.
+#' 
+#' @param path Path to a yaml design file.  Only used if \code{design} is not
+#'   given directly.
+#' @param design A preliminary design data structure (See the
+#'   \link[=doc/design.html]{Design file} vignette for complete documentation of
+#'   the structure of a design).
+#' @param default A design object to use as a source of default values to fill
+#'   in missing keys in \code{design}.
+#' 
 loadDesign <- function( path
                       , design  = yaml.load_file(path)
-                      , default = list( parser   = "read.table"
-                                      , platform = "96"
-                                      )
+                      , default = writeDesign(file = NULL)
                       ) {
   
   if(is.null(design$parser)) {
-    warning("Design is missing a 'parser:' definition; using default: ", default$parser)
+    message("Design is missing a 'parser:' definition; using default: ", default$parser)
     design$parser <- default$parser
   }
   
@@ -49,13 +83,13 @@ loadDesign <- function( path
   }
   
   if (is.null(design$platform)) {
-    warning("Design is missing a 'platform:' definition; using default:", default$platform)
+    message("Design is missing a 'platform:' definition; using default:", default$platform)
     design$platform <- default$platform
   }
   design$platform <- platforms[[as.character(design$platform)]]
   
   if (is.null(design$wells)) {
-    warning("Design is missing a 'wells:' definitio; using default: whole platform")
+    message("Design is missing a 'wells:' definition; using default: whole platform")
     design$wells <- as.vector(design$platform)
   }
   design$wells <- expandWells(design$wells, design$platform)
@@ -64,7 +98,7 @@ loadDesign <- function( path
     stop("Design is missing a 'factors:' definition.")
   }
   
-  factorNames <- names(design$factors)
+  factorNames    <- names(design$factors)
   design$factors <- lapply( factorNames
                           , function(name) { 
                               fact <- expandFactor(design$factor[[name]], design$platform)
@@ -80,6 +114,27 @@ loadDesign <- function( path
   names(design$factors) <- factorNames
   
   design
+}
+
+writeDesign  <- function( design = list( parser   = "read.table"
+                                       , platform = '96'
+                                       , wells    = "A1 -> H12"
+                                       , channels = list(channel1 = "data1.txt", channel2 = "data2.txt")
+                                       , factors  = list( factor1 = list(`A1->H6` = "A", `A7->H12` = "B")
+                                                        , factor2 = list(`A1->D12` = "C", `E1->H12` = "D")
+                                                        )
+                                       )
+                        , file   = "design.yaml"
+                        ) {
+  
+  s <- as.yaml(design)
+  
+  if (!is.null(file)) {
+    write(s, file)
+  }
+  
+  s
+  
 }
 
 # Parses a .asc text file produced by Tecan's Magellan software saved with the
@@ -102,9 +157,6 @@ read.magellan <- function(filePath, design) {
   
   melt(df, id.vars = "time", )
 }
-
-
-## implementation ##
 
 expandFactor <- function(factor, platform) { 
   c( mapply( expandValues
@@ -198,9 +250,11 @@ platformLabels <- function( nrow
 #' Platforms
 #' @export
 platforms <- list( "6"    = platformLabels( 2,  3)
-                   , "24"   = platformLabels( 4,  6)
-                   , "96"   = platformLabels( 8, 12)
-                   , "384"  = platformLabels(16, 24)
-                   , "1536" = platformLabels(32, 48)
-                   , "6144" = platformLabels(64, 96)
-)
+                 , "24"   = platformLabels( 4,  6)
+                 , "96"   = platformLabels( 8, 12)
+                 , "384"  = platformLabels(16, 24)
+                 , "1536" = platformLabels(32, 48)
+                 , "6144" = platformLabels(64, 96)
+                 )
+
+
