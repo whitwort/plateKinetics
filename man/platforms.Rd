@@ -3,8 +3,9 @@
 \docType{data}
 \name{platforms}
 \alias{platforms}
-\title{Platforms}
-\format{\preformatted{List of 6
+\title{Standard multiwell plate platforms}
+\format{\preformatted{List of 7
+ $ 4   : chr [1:2, 1:2] "A1" "B1" "A2" "B2"
  $ 6   : chr [1:2, 1:3] "A1" "B1" "A2" "B2" ...
  $ 24  : chr [1:4, 1:6] "A1" "B1" "C1" "D1" ...
  $ 96  : chr [1:8, 1:12] "A1" "B1" "C1" "D1" ...
@@ -16,7 +17,17 @@
 platforms
 }
 \description{
-Platforms
+Built-in data structure containing default platforms, which are character
+matrixes containing well lables for standard multiwell plate formats.
+}
+\details{
+Designs files can directly reference names on this list for the
+\code{platform} parameter (for example:  '96' or '384').  Run
+\code{vignette('design-files')} for details.
+}
+\seealso{
+\code{\link{platformLabels}} for creating additional platform
+  definitions.
 }
 \keyword{datasets}
 

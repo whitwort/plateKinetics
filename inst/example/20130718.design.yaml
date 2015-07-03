@@ -15,7 +15,7 @@ wells:    A1->H12
 channels:
     OD600: growth.asc
     DHE:   dhe.asc
-
+    
 factors:
     strain:
         A7->H12:  aifD

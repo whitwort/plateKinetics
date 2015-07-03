@@ -1,6 +1,6 @@
 Package: plateKinetics
 Type: Package
-Title: Analysis of kinetics reads from multiwell plates.
+Title: Analysis of kinetic reads from multiwell plates.
 Version: 0.1
 Author: Gregg Whitworth
 Maintainer: Gregg Whitworth <whitwort@gmail.com>
@@ -13,4 +13,4 @@ BugReports: http://github.com/whitwort/plateKinetics/issues
 License: LGPL-3
 VignetteBuilder: knitr
 Suggests: knitr
-Imports: shiny, yaml
+Imports: shiny, yaml, tidyr

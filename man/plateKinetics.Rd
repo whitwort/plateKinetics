@@ -4,8 +4,20 @@
 \name{plateKinetics}
 \alias{plateKinetics}
 \alias{plateKinetics-package}
-\title{TODO.}
+\title{Analysis of kinetic reads from multiwell plates}
 \description{
-TODO.
+This package provides a framework for loading and analyzing data collected in
+multiwell plate format over time.
+}
+\details{
+A number of vignettes are provided to get you started.  Run
+\code{vignette('plateKinetics-guide')} to see a simple getting started guide.
+See \code{vignette('design-files')} for a description of the design file
+format.  See \code{vignette('source-files')} for a description of supported
+input file formats and parser functions.
+
+If you'd rather not RTFM, \code{\link{loadExperiment}} will load an
+experiment object which can be passed to downstream visualization and
+analysis functions.
 }
 

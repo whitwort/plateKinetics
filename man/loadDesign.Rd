@@ -4,24 +4,44 @@
 \alias{loadDesign}
 \title{Load a design from a file or R list}
 \usage{
-loadDesign(path, design = yaml::yaml.load_file(path),
-  default = writeDesign(file = NULL))
+loadDesign(path, file, design = yaml.load_file(fullPath(path, file,
+  findFiles)), default = writeDesign(file = NULL), findFiles = TRUE)
 }
 \arguments{
-\item{path}{Path to a yaml design file.  Only used if \code{design} is not
-given directly.}
+\item{path}{A path to a directory where source files and (optionally) a
+design file can be found.  Not used if a design is given.}
 
-\item{design}{A preliminary design data structure (See the
-\link[=doc/design.html]{Design file} vignette for complete documentation of
-the structure of a design).}
+\item{file}{File name (or pattern if findFiles = TRUE) for the yaml design
+file. Not used if a design is given.}
+
+\item{design}{A preliminary design data structure to be validated.}
 
 \item{default}{A design object to use as a source of default values to fill
-in missing keys in \code{design}.}
+in missing entries in \code{design}.}
+
+\item{findFiles}{Boolean.  If TRUE, the paths to the design file and data
+  files can be complete file names or patterns to use to find a file in the
+  project path; if no exact file name match is found then the first file
+  which fits the pattern is picked.}
+}
+\value{
+A validated design object to be used by \code{\link{loadExperiment}}.
 }
 \description{
 This function should always be used to load design information, whether from
-a yaml file or R list structure, because it performs various validation and
-consistency checks.  It also injects reasonable defaults for missing
-parameters.
+a yaml file or R list structure, because it performs validation checks and
+injects reasonable defaults for missing parameters.
+}
+\details{
+Usually there is no need to call this function directly; use
+\code{\link{loadExperiment}} instead.
+
+Several vignettes are included with this package to fully document
+  the options for input files.  Run \code{vignette('source-files')} for a
+  description of supported input file formats and parser functions.
+}
+\seealso{
+See \code{\link{writeDesign}} for creating a template design.yaml
+  file.
 }
 
