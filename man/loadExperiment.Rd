@@ -4,8 +4,8 @@
 \alias{loadExperiment}
 \title{Load experimental design and source data.}
 \usage{
-loadExperiment(path = getwd(), design = loadDesign(projectPath,
-  "design.yaml", findFiles), findFiles = TRUE)
+loadExperiment(path = getwd(), design = loadDesign(path, "design.yaml",
+  findFiles = findFiles), findFiles = TRUE)
 }
 \arguments{
 \item{path}{A path to a directory where source files and (optionally) a

@@ -15,5 +15,4 @@
 #' 
 #' @docType package
 #' @name plateKinetics
-#' @import yaml
 NULL

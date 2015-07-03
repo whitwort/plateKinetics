@@ -4,7 +4,7 @@
 \alias{loadDesign}
 \title{Load a design from a file or R list}
 \usage{
-loadDesign(path, file, design = yaml.load_file(fullPath(path, file,
+loadDesign(path, file, design = yaml::yaml.load_file(fullPath(path, file,
   findFiles)), default = writeDesign(file = NULL), findFiles = TRUE)
 }
 \arguments{

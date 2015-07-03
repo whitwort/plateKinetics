@@ -31,17 +31,25 @@
 #' 
 #' @export
 loadExperiment <- function( path      = getwd()
-                          , design    = loadDesign(projectPath, "design.yaml", findFiles)
+                          , design    = loadDesign(path, "design.yaml", findFiles = findFiles)
                           , findFiles = TRUE
                           ) {
   
+  data    <- mergeData(path, design)
+  factors <- data.frame( design$factors
+                       , row.names = design$wells
+                       )
+  
   list( design  = design
-      , factors = data.frame( design$factors
-                            , row.names = design$wells
-                            )
-      , data    = mergeData(projectPath, design)
-      , map     = list()
-      , reduce  = list()
+        
+      # Source data structures
+      , data    = data
+      , factors = factors
+      
+      # Mutated by analysis procedures
+      , map     = cbind(factors[data$well,], data)
+      , reduce  = factors
+      
       )
   
 }
@@ -79,12 +87,12 @@ loadExperiment <- function( path      = getwd()
 #'  @export
 loadDesign <- function( path
                       , file
-                      , design     = yaml.load_file(fullPath(path, file, findFiles))
+                      , design     = yaml::yaml.load_file(fullPath(path, file, findFiles))
                       , default    = writeDesign(file = NULL)
                       , findFiles  = TRUE
                       ) {
   
-  if(is.null(design$parser)) {
+  if (is.null(design$parser)) {
     message("Design is missing a 'parser:' definition; using default: ", default$parser)
     design$parser <- default$parser
   }
@@ -110,7 +118,7 @@ loadDesign <- function( path
   }
   
   for (name in names(design$channels)) {
-    file <- fullPath(path, design$channels[name], findFiles)
+    file <- fullPath(path, design$channels[[name]], findFiles)
     if (!file.exists(file)) {
       stop("No source file could be found for channel `", name, "` with name/pattern `", design$channels[name], "`.")
     } else {
@@ -166,13 +174,13 @@ loadData   <- function(path, parser, design) {
   
   # spread format no header
   spreadNames <- c('time', design$wells)
-  if (colnames(x) == paste("V", 1:(wellCount + 1), sep = "")) {
+  if ( identical(colnames(x), paste("V", 1:(wellCount + 1), sep = "")) ) {
     colnames(x) <- spreadNames
   }
   
   # gathered format no header
   gatheredNames <- c("time", "well", "value")
-  if (colnames(x) == paste("V", 1:3, sep = "")) {
+  if ( identical(colnames(x), paste("V", 1:3, sep = "")) ) {
     colnames(x) <- gatheredNames
   }
   
@@ -182,7 +190,7 @@ loadData   <- function(path, parser, design) {
   
   if ( all(spreadNames %in% colnames(x)) ) {
     # reformat spread to gather
-    df <- tidyr::gather(x[spreadNames], "well", "value", design$wells)
+    df <- tidyr::gather(x[spreadNames], "well", "value", 2:(ncol(x)))
     colnames(df)[1] <- "time"
     
   } else if ( all(gatheredNames %in% colnames(x)) ) {
@@ -196,9 +204,7 @@ loadData   <- function(path, parser, design) {
     
   } else {
     
-    dostop("The data.frame does not conform to any accepted format.  See 
-           'source-files' vignette for details."
-          )
+    dostop("The data.frame does not conform to any accepted format.  See 'source-files' vignette for details.")
     
   }
  
@@ -227,7 +233,7 @@ mergeData <- function(path, design) {
   parser   <- eval(parse(text = design$parser))
   dataList <- lapply( design$channels
                     , function(file) { 
-                        loadData(file.path(path, file), parser, design) 
+                        loadData(file, parser, design) 
                       }
                     )
   
@@ -236,21 +242,16 @@ mergeData <- function(path, design) {
                   , function(df) {
                     
                       # check count of measurements for each well
-                      if (df$well != c1$well) {
-                        stop("Each channel must have the same number of time 
-                             measurements for a given well.  Check source data."
-                            )
+                      if ( !identical(df$well, c1$well) ) {
+                        stop("Each channel must have the same number of time measurements for a given well.  Check source data.")
                       }
                       
                       # check time point consistency
-                      if (df$time != c1$time) {
-                        warning("This package assumes that data for all channels 
-                                for a given well are collected at the same time 
-                                points.  This does not appear to be the case.  
-                                Processing will continue but will use ONLY the 
-                                time points found in the source file for the 
-                                FIRST channel to represent data in ALL channels."
-                               )
+                      if ( !identical(df$time, c1$time) ) {
+                        message("This package assumes that data for all channels for a given well are collected at the same time points.  This does not appear to be the case. Processing will continue but will use ONLY the time points found in the source file for the FIRST channel to represent data in ALL channels. Non-identical time points are:")
+                        not.eq <- !(df$time == c1$time)
+                        print(unique(c1$time[not.eq]))
+                        print(unique(df$time[not.eq]))
                       }
                       
                       df$value 
@@ -291,7 +292,7 @@ writeDesign  <- function( design = list( parser   = "read.table"
                         , file   = "design.yaml"
                         ) {
   
-  s <- as.yaml(design)
+  s <- yaml::as.yaml(design)
   if (!is.null(file)) { write(s, file) }
   s
   
