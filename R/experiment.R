@@ -1,5 +1,3 @@
-#' @import yaml
-
 #' Load experimental design and source data.
 #' 
 #' This function loads an experimental design and source data files described by
@@ -69,7 +67,7 @@ loadExperiment <- function( projectPath = getwd()
 #'   in missing keys in \code{design}.
 #' 
 loadDesign <- function( path
-                      , design  = yaml.load_file(path)
+                      , design  = yaml::yaml.load_file(path)
                       , default = writeDesign(file = NULL)
                       ) {
   
@@ -127,7 +125,7 @@ writeDesign  <- function( design = list( parser   = "read.table"
                         , file   = "design.yaml"
                         ) {
   
-  s <- as.yaml(design)
+  s <- yaml::as.yaml(design)
   
   if (!is.null(file)) {
     write(s, file)

@@ -2,12 +2,37 @@
 % Please edit documentation in R/experiment.R
 \name{loadExperiment}
 \alias{loadExperiment}
-\title{Load an experimental design and data files from a directory}
+\title{Load experimental design and source data.}
 \usage{
 loadExperiment(projectPath = getwd(),
   design = loadDesign(pickFile(projectPath, "design.yaml")))
 }
+\arguments{
+\item{projectPath}{A path to a directory where source files and (optionally)
+a design file can be found.  Defaults to the current working directory.}
+
+\item{design}{A design object, usually created by \code{\link{loadDesign}}.
+  By default an experimental design will be loaded from the first file found
+  in the \code{projectPath} that has a name ending in 'design.yaml'.}
+}
+\value{
+An experiment object (list) that serves as input to downstream
+  analysis functions.
+}
 \description{
-Load an experimental design and data files from a directory
+This function loads an experimental design and source data files described by
+that design.  Both are checked for validity and consistency.  It returns an
+experiment object (a list), which is used as the input for all downstream
+analysis functions.
+}
+\details{
+See the \link[=doc/design.html]{Design file} vignette for complete
+documentation of the structure of a design \href{http://www.yaml.org/}{yaml}
+file (or R list structure).
+}
+\seealso{
+\code{\link{loadDesign}} for finer control over loading a design
+  from a file or a list, \code{\link{writeDesign}} for creating a template
+  design.yaml file.
 }
 
