@@ -10,7 +10,7 @@ Description: This package provides a set of tools for analyzing absorbance and
   as data annotation and visualization.
 URL: http://github.com/whitwort/plateKinetics
 BugReports: http://github.com/whitwort/plateKinetics/issues
-License: LGPL-3
+License: GPLv2
 VignetteBuilder: knitr
 Suggests: knitr
 Imports: shiny, yaml, tidyr
