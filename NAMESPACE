@@ -2,7 +2,7 @@
 
 export(loadDesign)
 export(loadExperiment)
+export(newDesign)
 export(platformLabels)
 export(platforms)
 export(read.magellan)
-export(writeDesign)

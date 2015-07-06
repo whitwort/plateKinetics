@@ -1,58 +1,88 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
-date: "`r Sys.Date()`"
+title: "Source files"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Source files}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+## Introduction
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+This vignette describes the possible source file formats you can use when loading plate reader data into an experiment.  The `loader` function given in your [design file](design-files.html) should return a `data.frame` formatted in one of the four ways described below.  
 
-## Vignette Info
+In all cases, each source should contain data for one and only one channel (defined under `channels` in the design file).
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+## Well data across the columns (spread format)
 
-## Styles
+The first data formatting option, commonly produced by plate reader software, is to give the read values for each well across the columns, with time points down the rows.  Data in this format can either have an explicit header (column names) or not:
 
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+### Without column names
 
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
+If your data does not have a header with well lables, it is assumed that the resulting `data.frame` object will have the generic R column names "V1", "V2", etc..  For example:
 
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r echo=FALSE} 
+df <- read.table("../tests/testthat/source-spread-unnamed.txt")
+knitr::kable(head(df[1:10]))
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+In this case, the source `data.frame` should:
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+* Include time points in the first column (numeric vector)
+* Have exactly `n + 1` columns, where `n` is the number of wells in the design (one column for each well, plus the first containing time points).
+* Include well data across columns **in the same order** as wells are specificed in the `well` list in the design.  
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+This last note is very important: the `->` syntax in design files creates row-wise sets of well labels.  For example, `A1 -> B2` is equivalent to `A1, A2, B1, B2`.  Therefore, if you are using this syntax to designated the wells used in an experiment, your column order in source data must also be order row-wise.
 
-## More Examples
+### With column names
 
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+If your `loader` returns a `data.frame` with well labels, such as:
 
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r echo=FALSE} 
+df <- read.table("../tests/testthat/source-spread-named.txt")
+knitr::kable(head(df[1:10]))
 ```
 
-Also a quote using `>`:
+The requirements are looser:
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+* One column must be named `time` and include numeric time points
+* Each well label should be a valid column name on the table (containing read for that well).
+
+Extra columns are fine and column order doesn't matter.
+
+## One observation per row (gathered format)
+
+Alternativey, data can be formatted with one and only one observation in each row.  In this case the `data.frame` should have three named or unnamed columns.
+
+### Without column names
+
+If your `loader` returns a `data.frame` with three columns with generic names, like:
+
+```{r echo=FALSE} 
+df <- read.table("../tests/testthat/source-gathered-unnamed.txt")
+knitr::kable(head(df))
+```
+
+The columns order should be:
+
+* First column contains numeric time points
+* Second column contains well labels; all wells given in the design must be represented.
+* Third column contains read values
+
+### With column names
+
+Alternatively, if your table contains explicit column names:
+
+```{r echo=FALSE} 
+df <- read.table("../tests/testthat/source-gathered-named.txt")
+knitr::kable(head(df))
+```
+
+The column order does not matter, however all wells given in the design must be represented.
+
+## Alternative data sources
+
+Although the examples given here all assume that source data is being loaded from local files by the `loader` function, the design of the framework allows for flexibility.
+
+For example, a custom `loader` function could easily read data from a database or URL.  The framework simply passes the values of each channel definition in the [design file](design-files.html) off to the loader.  One important thing to note, however, is that will probably want to set `findFiles = FALSE` if your loader isn't expecting channel values to be local files in the working directory.
+

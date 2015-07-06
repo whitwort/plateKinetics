@@ -1,0 +1,8 @@
+loader: read.table
+platform: '96'
+wells: A1 -> H12
+channels:
+  channel1: data1.txt
+  channel2: data2.txt
+
+

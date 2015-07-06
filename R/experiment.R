@@ -20,15 +20,15 @@
 #' @details Several vignettes are included with this package to fully document
 #'   the options for input files.  Run \code{vignette('design-files')} for a
 #'   description of the design file format.  Run \code{vignette('source-files')}
-#'   for a description of supported input file formats and parser functions.
+#'   for a description of supported input file formats and loader functions.
 #' 
 #' @return An experiment object that serves as input to downstream
 #'   analysis functions.
-#'   
+#'
 #' @seealso \code{\link{loadDesign}} for finer control over loading a design
-#'   from a file or a list, \code{\link{writeDesign}} for creating a template
+#'   from a file or a list, \code{\link{newDesign}} for creating a template
 #'   design.yaml file.
-#' 
+#'
 #' @export
 loadExperiment <- function( path      = getwd()
                           , design    = loadDesign(path, "design.yaml", findFiles = findFiles)
@@ -38,6 +38,7 @@ loadExperiment <- function( path      = getwd()
   data    <- mergeData(path, design)
   factors <- data.frame( design$factors
                        , row.names = design$wells
+                       , stringsAsFactors = TRUE
                        )
   
   list( design  = design
@@ -77,35 +78,41 @@ loadExperiment <- function( path      = getwd()
 #'
 #' @details Several vignettes are included with this package to fully document 
 #'   the options for input files.  Run \code{vignette('source-files')} for a
-#'   description of supported input file formats and parser functions.
+#'   description of supported input file formats and loader functions.
 #'
 #' @return A validated design object to be used by \code{\link{loadExperiment}}.
 #' 
-#' @seealso See \code{\link{writeDesign}} for creating a template design.yaml
+#' @seealso See \code{\link{newDesign}} for creating a template design.yaml
 #'   file.
 #'  
 #'  @export
-loadDesign <- function( path
-                      , file
+loadDesign <- function( path       = getwd()
+                      , file       = "design.yaml"
                       , design     = yaml::yaml.load_file(fullPath(path, file, findFiles))
-                      , default    = writeDesign(file = NULL)
+                      , default    = yaml::yaml.load(newDesign(file = NULL))
                       , findFiles  = TRUE
                       ) {
   
-  if (is.null(design$parser)) {
-    message("Design is missing a 'parser:' definition; using default: ", default$parser)
-    design$parser <- default$parser
+  if (is.null(design$loader)) {
+    message("Design is missing a 'loader:' definition; using default: ", default$loader)
+    design$loader <- default$loader
   }
   
-  if (length(find(design$parser)) < 1) {
-    stop("The data file parser `", design$parser, "` does not match any function currently in scope.")
+  if (length(find(design$loader)) < 1) {
+    stop("The data file loader `", design$loader, "` does not match any function currently in scope.")
   }
   
   if (is.null(design$platform)) {
     message("Design is missing a 'platform:' definition; using default:", default$platform)
     design$platform <- default$platform
   }
-  design$platform <- platforms[[as.character(design$platform)]]
+  
+  if (!design$platform %in% names(platforms)) {
+    platform <- eval(parse(text = design$platform))
+  } else {
+    platform <- platforms[[as.character(design$platform)]]
+  }
+  design$platform <- platform
   
   if (is.null(design$wells)) {
     message("Design is missing a 'wells:' definition; using default: whole platform")
@@ -158,17 +165,17 @@ loadDesign <- function( path
 #' \code{\link{loadExperiment}} instead.
 #' 
 #' @param path Source file to load.
-#' @param parser Function to use to load the source file.
+#' @param loader Function to use to load the source file.
 #' @param design Design object, usually created with \code{\link{loadDesign}}.
 #' 
 #' @details Several vignettes are included with this package to fully document 
 #'   the options for input files.  Run \code{vignette('source-files')} for a
-#'   description of supported input file formats and parser functions.
+#'   description of supported input file formats and loader functions.
 #'
 #' @return A validated data.frame with a 'time', 'well', and 'value' column.
 #' 
-loadData   <- function(path, parser, design) {
-  x <- parser(path)
+loadData   <- function(path, loader, design) {
+  x <- loader(path)
   
   wellCount <- length(design$wells)
   
@@ -185,7 +192,7 @@ loadData   <- function(path, parser, design) {
   }
   
   dostop <- function(...) {
-    stop("Reading source file `", path, "` with parser `", substitute(parser), "` failed.  ", ...)
+    stop("Reading source file `", path, "` with loader `", substitute(loader), "` failed.  ", ...)
   }
   
   if ( all(spreadNames %in% colnames(x)) ) {
@@ -208,6 +215,10 @@ loadData   <- function(path, parser, design) {
     
   }
  
+  df$well  <- as.character(df$well)
+  df$value <- as.numeric(df$value)
+  rownames(df) <- NULL
+  
   df
 }
 
@@ -223,17 +234,17 @@ loadData   <- function(path, parser, design) {
 #' 
 #' @details Several vignettes are included with this package to fully document 
 #'   the options for input files.  Run \code{vignette('source-files')} for a
-#'   description of supported input file formats and parser functions.
+#'   description of supported input file formats and loader functions.
 #'
 #' @return A data.frame containing a 'well', 'time' column and value columns for
 #'   each channel.
 #' 
 mergeData <- function(path, design) {
   
-  parser   <- eval(parse(text = design$parser))
+  loader   <- eval(parse(text = design$loader))
   dataList <- lapply( design$channels
                     , function(file) { 
-                        loadData(file, parser, design) 
+                        loadData(file, loader, design) 
                       }
                     )
   
@@ -266,7 +277,7 @@ mergeData <- function(path, design) {
   
 }
 
-#' Write a design object out to a yaml file.
+#' Write a new design object out to a yaml file.
 #' 
 #' This function serializes a design object out to a yaml text file or character
 #' vector.  It is useful for writing a design object out to a file for future
@@ -281,16 +292,16 @@ mergeData <- function(path, design) {
 #' @return A character vector containing yaml text.
 #' 
 #' @export
-writeDesign  <- function( design = list( parser   = "read.table"
-                                       , platform = '96'
-                                       , wells    = "A1 -> H12"
-                                       , channels = list(channel1 = "data1.txt", channel2 = "data2.txt")
-                                       , factors  = list( factor1 = list(`A1->H6`  = "A", `A7->H12` = "B")
-                                                        , factor2 = list(`A1->D12` = "C", `E1->H12` = "D")
-                                                        )
-                                       )
-                        , file   = "design.yaml"
-                        ) {
+newDesign  <- function( design = list( loader   = "read.table"
+                                     , platform = '96'
+                                     , wells    = "A1 -> H12"
+                                     , channels = list(channel1 = "data1.txt", channel2 = "data2.txt")
+                                     , factors  = list( factor1 = list(`A1->H6`  = "A", `A7->H12` = "B")
+                                                      , factor2 = list(`A1->D12` = "C", `E1->H12` = "D")
+                                                      )
+                                     )
+                       , file   = "design.yaml"
+                       ) {
   
   s <- yaml::as.yaml(design)
   if (!is.null(file)) { write(s, file) }
@@ -382,16 +393,18 @@ expandWells <- function(wells, platform) {
                     , function(s) { expandWells(s, platform) }
                     )
     
+    wells <- c(wells, recursive = TRUE)
+    
   } else if (grepl("->", wells)) {
     range <- strsplit(wells, "->", fixed = TRUE)
     
     startWell <- range[[1]][1]
     endWell   <- range[[1]][2]
-    
+
     start <- which(platform == startWell, arr.ind = TRUE)
     end   <- which(platform == endWell,   arr.ind = TRUE)
     
-    wells <- platform[start[1]:end[1], start[2]:end[2]]
+    wells <- t(platform[start[1]:end[1], start[2]:end[2]])
     
   }
 
@@ -406,6 +419,9 @@ checkWell <- function(wells, platform) {
   missing <- !(wells %in% platform)
   
   if (any(missing)) {
+    print(wells)
+    print(missing)
+    
     stop("The following wells are not in the given platform:  ", wells[missing])
   }
 }

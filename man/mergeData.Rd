@@ -24,6 +24,6 @@ Usually there is no need to call this function directly; use
 
 Several vignettes are included with this package to fully document
   the options for input files.  Run \code{vignette('source-files')} for a
-  description of supported input file formats and parser functions.
+  description of supported input file formats and loader functions.
 }
 

@@ -1,0 +1,11 @@
+loader: read.table
+platform: '96'
+wells: A1 -> H12
+factors:
+  factor1:
+    A1->H6: A
+    A7->H12: B
+  factor2:
+    A1->D12: C
+    E1->H12: D
+

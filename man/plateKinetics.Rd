@@ -14,7 +14,7 @@ A number of vignettes are provided to get you started.  Run
 \code{vignette('plateKinetics-guide')} to see a simple getting started guide.
 See \code{vignette('design-files')} for a description of the design file
 format.  See \code{vignette('source-files')} for a description of supported
-input file formats and parser functions.
+input file formats and loader functions.
 
 If you'd rather not RTFM, \code{\link{loadExperiment}} will load an
 experiment object which can be passed to downstream visualization and

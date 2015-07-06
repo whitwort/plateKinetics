@@ -1,7 +1,5 @@
 ---
 title: "Design files"
-author: "Gregg Whitworth"
-date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Design files}
@@ -9,50 +7,146 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+## Introduction
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+This package uses a nested list structure to describe the design of experiments.  Designs include information about what kind of multiwell plate was used, how source data files should be loaded, and the organization of samples among wells (factor annotations).
 
-## Vignette Info
+The simplest way to provide this information when loading an experiment with `loadExperiment` is to create a design file in [yaml][] format.  Alternatively, you can supply a nested R list of the same structure.
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+To create a template design file in the current working directory, you can simply run:
 
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r eval=FALSE}
+newDesign()
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+Provide a `file` argument to choose an alternative path or file name:
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r eval=FALSE}
+newDesign(file = "~/myproj/myproj-design.yaml")
 ```
 
-Also a quote using `>`:
+## A simple example
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+Before we dive into each element of a design, let's look at a simple complete example in [yaml][] file format:
+
+```yaml
+loader:   read.table
+platform: 96
+wells:    A1 -> H12
+
+channels:
+  channel1: data1.txt
+  channel2: data2.txt
+  
+factors:
+
+  factor1:
+    A1 -> H6:  A
+    A7 -> H12: B
+    
+  factor2:
+    A1 -> D12: C
+    E1 -> H12: D
+```
+
+This design describes an experiment performed 96-well format, using all wells on the plate, with two sets of readings found in two different input files (`data1.txt` and `data2.txt`) read using R's built in `read.table`.  Finally, in this experiment wells contain one of two different levels of two categorical factors.
+
+An identical design created as a native R `list` structure would be:
+
+```{r eval=FALSE}
+list( loader   = "read.table"
+    , platform = '96'
+    , wells    = "A1 -> H12"
+    , channels = list( channel1 = "data1.txt", channel2 = "data2.txt")
+    , factors  = list( factor1 = list(`A1->H6`  = "A", `A7->H12` = "B")
+                     , factor2 = list(`A1->D12` = "C", `E1->H12` = "D")
+                     )
+    )
+```
+
+A more complex example can be found the `example/` sub-directory where the package is installed.
+
+## Describing wells
+
+There are two places in a design file where you'll need to describe sets of wells: the top level `wells:` entry and within factor blocks.  In both contexts there is some syntatic sugar available to make it easy to describe complex setups.
+
+First you can just list a single well, like: 
+
+```yaml
+A1
+```
+You can list multiple wells using commas: 
+
+```yaml
+A1, A10, B6
+```
+
+You can also describe rectangular blocks of wells using the forward arrow `->` syntax (as in the example above).  The use of the right-handed horizontal arrow is designed to reflect that this syntax will generate a set of well labels row-wise across the rectangle.  For example:
+
+```yaml
+A1 -> B2
+``` 
+
+is equivalent to: 
+
+```yaml
+A1, A2, B1, B2
+```
+
+This is important to keep in mind if you are loading source data without explicit well labels.
+
+Finally, it's fine to combine all of the above options and white space is stripped, so the following perfectly valid (if odd): 
+
+```yaml
+A1 ->B4, C6, H6-> H12
+```
+
+In all cases, the usable well label strings are defined by the platform (see below).
+
+## Design entries
+
+The following subsections describe each of the design entries (top level associate array keys in [yaml][] or names on an R list).  The order does not matter.
+
+### `loader`
+
+The value should be string that evaluates to a function used to read source data files listed in `channels`; if no value is provided `read.table` will be used by default.  This package provides a suitable `read.magellan` function if you are collecting data using Tecan's Magellan suite.
+
+If you need to provide a custom data loader function it should take a single required argument, the path to the source data file to load, and return a data.frame containing read data.  See the `source-files` vignette for acceptable return `data.frame` structures.
+
+### `platform`
+
+The value should be a string describing the multiwell plate platform used in the experiment.  This can be done in two ways.  First, the string can reference a platform on the built-in platforms list: `r names(plateKinetics::platforms)`.  
+
+Alternatively, this string can evaluate to variable holding a character matrix of well labels in the current environment.  If you need to create a custom platform beyond what is provided by the built in `platforms` list, the `platformLabels` function might be helpful.
+
+### `wells`
+
+The value should be the set of wells within the `platform` that were used to collect data in this experiment.  If you are loading data from source files without explicit well labels it is essential that the series of well lables given here matches the order of data in input files.
+
+If no value is given this will default to all wells in the platform.
+
+### `channels`
+
+The `channels` entry should hold an associative array/list that links an experimental plate read setting with a source data file.  For example a sub-entry `chan1: file1.txt` will use the function given by `loader` to load `file.txt` and label loaded values as `chan1`.  See the `source-files` vignette for details on accepted input data formats.
+
+### `factors`
+
+Factors describe your experimental variables, which can be either quantitative or categorical.  Each entry under `factors` gives the name of an experimental factor.  Each subentry under a factor should link wells to categorical levels or numeric values as `key: value` pairs.
+
+For example, suppose you have two experimental factors:  `Factor1` and `Factor2`.  `Factor1` has two categorical levels:  "A" (in wells A1 to A2) and "B" (in wells B1 to B2) and `Factor2` has the quantitative levels `1` (in row 1) and `2` (in row 2).  This design would be described with:
+
+```yaml
+factors:
+  
+  factor1:
+    A1, A2: A
+    B1, B2: B
+    
+  factor2:
+    A1, B1: 1
+    A2, B2: 2
+```
+
+Factor names should be valid R variable names (avoid spaces and other non-alphanumerical characters); if they are not they will be coerced to a string that is on import.  If you intend for factors to be quatitative (as for Factor2 in the example above), make sure entries only contain numbers.  Units for values can be included in the factor names themselves if needed.
+
+[yaml]: https://en.wikipedia.org/wiki/YAML "YAML"

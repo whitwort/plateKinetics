@@ -12,5 +12,6 @@ URL: http://github.com/whitwort/plateKinetics
 BugReports: http://github.com/whitwort/plateKinetics/issues
 License: GPLv2
 VignetteBuilder: knitr
-Suggests: knitr
+Suggests: knitr,
+    testthat
 Imports: shiny, yaml, tidyr

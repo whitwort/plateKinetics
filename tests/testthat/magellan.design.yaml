@@ -8,7 +8,7 @@
 # (Tecan).  See help for the 'read.magellan' function for the correct export 
 # parameters to use in your methods.
 
-parser:   read.magellan
+loader:   read.magellan
 platform: 96
 wells:    A1->H12
 

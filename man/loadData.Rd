@@ -4,12 +4,12 @@
 \alias{loadData}
 \title{Load, validate, and reformat (if necessary) source data.}
 \usage{
-loadData(path, parser, design)
+loadData(path, loader, design)
 }
 \arguments{
 \item{path}{Source file to load.}
 
-\item{parser}{Function to use to load the source file.}
+\item{loader}{Function to use to load the source file.}
 
 \item{design}{Design object, usually created with \code{\link{loadDesign}}.}
 }
@@ -27,6 +27,6 @@ Usually there is no need to call this function directly; use
 
 Several vignettes are included with this package to fully document
   the options for input files.  Run \code{vignette('source-files')} for a
-  description of supported input file formats and parser functions.
+  description of supported input file formats and loader functions.
 }
 

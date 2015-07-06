@@ -34,11 +34,11 @@ analysis functions.
 Several vignettes are included with this package to fully document
   the options for input files.  Run \code{vignette('design-files')} for a
   description of the design file format.  Run \code{vignette('source-files')}
-  for a description of supported input file formats and parser functions.
+  for a description of supported input file formats and loader functions.
 }
 \seealso{
 \code{\link{loadDesign}} for finer control over loading a design
-  from a file or a list, \code{\link{writeDesign}} for creating a template
+  from a file or a list, \code{\link{newDesign}} for creating a template
   design.yaml file.
 }
 

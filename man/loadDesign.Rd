@@ -4,8 +4,9 @@
 \alias{loadDesign}
 \title{Load a design from a file or R list}
 \usage{
-loadDesign(path, file, design = yaml::yaml.load_file(fullPath(path, file,
-  findFiles)), default = writeDesign(file = NULL), findFiles = TRUE)
+loadDesign(path = getwd(), file = "design.yaml",
+  design = yaml::yaml.load_file(fullPath(path, file, findFiles)),
+  default = yaml::yaml.load(newDesign(file = NULL)), findFiles = TRUE)
 }
 \arguments{
 \item{path}{A path to a directory where source files and (optionally) a
@@ -38,10 +39,10 @@ Usually there is no need to call this function directly; use
 
 Several vignettes are included with this package to fully document
   the options for input files.  Run \code{vignette('source-files')} for a
-  description of supported input file formats and parser functions.
+  description of supported input file formats and loader functions.
 }
 \seealso{
-See \code{\link{writeDesign}} for creating a template design.yaml
+See \code{\link{newDesign}} for creating a template design.yaml
   file.
 }
 
