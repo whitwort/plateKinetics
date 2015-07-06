@@ -14,7 +14,7 @@ Run `r install.packages("devtools")` first if you don't have it installed.
 
 ## Getting started
 
-For a quick overview, you can open the [getting-started]("vignettes/getting-started.rmd") vignette after loading the package:
+For a quick overview, you can open the [getting-started](vignettes/getting-started.rmd) vignette after loading the package:
 
 ```
 library(plateKinetics)
