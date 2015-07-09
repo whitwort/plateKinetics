@@ -147,6 +147,6 @@ factors:
     A2, B2: 2
 ```
 
-Factor names should be valid R variable names (avoid spaces and other non-alphanumerical characters); if they are not they will be coerced to a string that is on import.  If you intend for factors to be quatitative (as for Factor2 in the example above), make sure entries only contain numbers.  Units for values can be included in the factor names themselves if needed.
+Factor names should be valid R variable names; if they are not they will be coerced to a string that is on import (see `?make.names`).  If you intend for factors to be quatitative (as for Factor2 in the example above), make sure entries only contain numbers.  Units for values can be included in the factor names themselves if needed.
 
 [yaml]: https://en.wikipedia.org/wiki/YAML "YAML"

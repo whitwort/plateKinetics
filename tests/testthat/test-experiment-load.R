@@ -13,8 +13,7 @@ test_that("well syntax parses correctly", {
     for (t in c(t1, t2, t3, t4)) {
 
       r <- expandWells(t, platforms[[pName]])
-      expect_is(r, 'character', info = paste("test:", t, "platform:", pName))
-      expect_equal(r, a, info = paste("test:", t, "platform:", pName))
+      expect_identical(r, a, info = paste("test:", t, "platform:", pName))
       
     }
   }
@@ -49,7 +48,11 @@ test_that("loadDesign fails on invalid designs", {
   
 })
 
-test_that("loadData produces identical results across optional input structures", {
+test_that("loadDesigns gives a message when factor names are being coerced", {
+  expect_message(loadDesign(file = "renamed-factors.yaml"))
+})
+
+test_that("loadData produces identical results across input structures", {
   sources <- list.files(pattern = "^source-*")
   
   d   <- loadDesign(file = "design.yaml")

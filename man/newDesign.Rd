@@ -25,4 +25,14 @@ This function serializes a design object out to a yaml text file or character
 vector.  It is useful for writing a design object out to a file for future
 use or for creating a template design file.
 }
+\examples{
+\dontrun{
+# Create a template design file in the current directory
+newDesign()
+
+# Create a new design file in a diferent directory
+newDesign(file = "~/myproj/my-design.yaml")
+
+}
+}
 

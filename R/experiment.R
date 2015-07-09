@@ -1,5 +1,3 @@
-## API ##
-
 #' Load experimental design and source data.
 #' 
 #' This function loads an experimental design and source data files described by
@@ -24,11 +22,11 @@
 #' 
 #' @return An experiment object that serves as input to downstream
 #'   analysis functions.
-#'
+#' 
 #' @seealso \code{\link{loadDesign}} for finer control over loading a design
 #'   from a file or a list, \code{\link{newDesign}} for creating a template
 #'   design.yaml file.
-#'
+#' 
 #' @export
 loadExperiment <- function( path      = getwd()
                           , design    = loadDesign(path, "design.yaml", findFiles = findFiles)
@@ -137,7 +135,13 @@ loadDesign <- function( path       = getwd()
     stop("Design is missing a 'factors:' definition. No annotations can be added")
   }
   
-  factorNames    <- names(design$factors)
+  factorNames <- make.names(names(design$factors))
+  if (!identical(factorNames, names(design$factors))) {
+    changed <- factorNames != names(design$factors)
+    message("Factor names have been coerced to valid strings.  Old: ", design$factors[changed], ", New: ", factorNames[changed])
+  }
+  names(design$factors) <- factorNames
+  
   design$factors <- lapply( factorNames
                           , function(name) { 
                               fact <- expandFactor(design$factor[[name]], design$platform)
@@ -291,6 +295,16 @@ mergeData <- function(path, design) {
 #' 
 #' @return A character vector containing yaml text.
 #' 
+#' @examples
+#' \dontrun{
+#' # Create a template design file in the current directory
+#' newDesign()
+#' 
+#' # Create a new design file in a diferent directory
+#' newDesign(file = "~/myproj/my-design.yaml")
+#' 
+#' }
+#' 
 #' @export
 newDesign  <- function( design = list( loader   = "read.table"
                                      , platform = '96'
@@ -362,7 +376,7 @@ platforms <- list( "4"    = platformLabels( 2,  2)
                  , "6144" = platformLabels(64, 96)
                  )
 
-## internals ##
+## implementation ##
 expandFactor <- function(factor, platform) { 
   c( mapply( expandValues
            , names(factor)

@@ -1,0 +1,14 @@
+loader: read.table
+platform: '96'
+wells: A1 -> H12
+channels:
+  channel1: data1.txt
+  channel2: data2.txt
+factors:
+  factor 1:
+    A1->H6: A
+    A7->H12: B
+  2-factor:
+    A1->D12: C
+    E1->H12: D
+
