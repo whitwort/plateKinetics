@@ -10,33 +10,27 @@ NULL
 #' @param factorName A character name giving the factor to be visulaized.
 #'   
 #' @return A ggplot2 object.
-#'   
+#'
+#' @export
 plotFactor <- function(experiment, factorName) {
   
-  design   <- experiment$design
-  platform <- design$platform
+  df     <- experiment$reduce
+  df$col <- factor(df$col, levels = sort(unique(df$col)))
+  df$row <- factor(df$row, levels = sort(unique(df$row), decreasing = TRUE))
   
-  wells    <- c(platform)
-  rows     <- rep(1:nrow(platform), times = ncol(platform))
-  cols     <- rep(1:ncol(platform), each = nrow(platform))
-  value    <- design$factors[[factorName]][wells]
-  
-  df <- data.frame(wells, rows, cols, value)
-  
-  ggplot( df
-        , aes( factor(cols)
-             , factor(rows, levels = sort(unique(rows), decreasing = TRUE))
-             , fill  = value
-             )
-        )                                                                + 
-    geom_raster(hjust = 1, vjust = 0, alpha = 0.8)                       + 
-    theme(panel.grid.major = element_line(size = 1.5, color = "black"))  + 
+  ggplot(df, aes(col, row)) + 
+    geom_raster( aes_string(fill = factorName)
+               , hjust = 1
+               , vjust = 0
+               , alpha = 0.8
+               ) + 
+    theme(panel.grid.major = element_line(size = 1.5, color = "black")) + 
     labs(x = "column", y = "row")
-
+    
 }
 
 factorUI <- function(experiment) {
-  tagList( h1("Experimental design")
+  tagList( h1("Plate setup")
          , p("This page provides a set of visualizations summarizing the design 
               of this experiment by ploting factor levels/values across the 
               wells of your plate.  It is a useful tool to use as a sanity check 
@@ -57,7 +51,6 @@ factorServer <- function(experiment) {
             , function(factorName) {
                 id <- paste('setup.factors', factorName, sep = ".")
                 output[[id]] <- renderPlot({ plotFactor(experiment, factorName) })
-                
                 tagList(h2(factorName), plotOutput(id))
               }  
             )
@@ -68,4 +61,4 @@ factorServer <- function(experiment) {
 
 
 # Register a new plugin for the experimental viewer
-addPlugin(name = 'Plate setup', ui = factorUI, server = factorServer, icon = icon("wrench"))
+addPlugin(name = 'Plate setup', ui = factorUI, server = factorServer, icon = icon("tags"))

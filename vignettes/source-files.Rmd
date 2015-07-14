@@ -46,7 +46,7 @@ knitr::kable(head(df[1:10]))
 The requirements are looser:
 
 * One column must be named `time` and include numeric time points
-* Each well label should be a valid column name on the table (containing read for that well).
+* Each well label should be a valid column name on the table (containing reads for that well).
 
 Extra columns are fine and column order doesn't matter.
 
@@ -65,9 +65,9 @@ knitr::kable(head(df))
 
 The columns order should be:
 
-* First column contains numeric time points
+* First column contains numeric time points.
 * Second column contains well labels; all wells given in the design must be represented.
-* Third column contains read values
+* Third column contains read values.
 
 ### With column names
 
@@ -84,5 +84,5 @@ The column order does not matter, however all wells given in the design must be 
 
 Although the examples given here all assume that source data is being loaded from local files by the `loader` function, the design of the framework allows for flexibility.
 
-For example, a custom `loader` function could easily read data from a database or URL.  The framework simply passes the values of each channel definition in the [design file](design-files.html) off to the loader.  One important thing to note, however, is that will probably want to set `findFiles = FALSE` if your loader isn't expecting channel values to be local files in the working directory.
+For example, a custom `loader` function could easily read data from a database or URL.  The framework simply passes the values of each channel definition in the [design file](design-files.html) off to the loader.  One important thing to note, however, is that you will probably want to set `findFiles = FALSE` if your loader isn't expecting channel values to be local files in the working directory.
 

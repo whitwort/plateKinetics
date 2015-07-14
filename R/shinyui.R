@@ -33,24 +33,65 @@ viewExperiment <- function(experiment, plugins = default.plugins) {
   
   plugins <- listPlugins(plugins)
   
-  shinyApp( ui     = viewUI(experiment, substitute(experiment), plugins)
-          , server = viewServer(experiment, plugins)
-          )
+  app <- shinyApp( ui     = viewUI(experiment, substitute(experiment), plugins)
+                 , server = viewServer(experiment, plugins)
+                 )
+  
+  runApp(app)
   
 }
 
 # Generate a shiny UI and server for the current plugins
 viewUI <- function(experiment, name, plugins) {
   
-  pluginsMenu <- lapply( plugins
-                         , function(p) {
-                           menuItem( text    = p$name
-                                     , tabName = p$id
-                                     , icon    = p$icon
-                           )
-                         }
-  )
+  homeMenu <- menuItem('Overview', tabName = 'overview', icon = icon("dashboard"))
   
+  design <- experiment$design
+  total  <- length(design$channels) * nrow(experiment$data) * length(design$wells)
+  homeItem <- tabItem( tabName = 'overview'
+                     , fluidRow( valueBox( length(design$channels)
+                                         , "Channels"
+                                         , icon  = icon("table")
+                                         , color = "aqua"
+                                         )
+                               , valueBox( nrow(experiment$data)
+                                         , "Time points"
+                                         , icon  = icon("clock-o")
+                                         , color = "purple"
+                                         )
+                               , valueBox( length(design$factors)
+                                         , "Factors"
+                                         , icon  = icon("tags")
+                                         , color = "yellow"
+                                         )
+                               , valueBox( length(design$wells)
+                                         , "Wells"
+                                         , icon  = icon("th")
+                                         , color = "green"
+                                         )
+                               , valueBox( total
+                                         , "Data points"
+                                         , icon  = icon("plus")
+                                         , color = "maroon"
+                                         )
+                               , valueBox( format(object.size(experiment), units = "auto")
+                                         , 'Size'
+                                         , icon  = icon("file")
+                                         , color = "blue"
+                                         )
+                               )
+                     , br()
+                     , p("Currently loaded experiment:", strong(name))
+                     )
+  
+  pluginsMenu <- lapply( plugins
+                       , function(p) {
+                           menuItem( text    = p$name
+                                   , tabName = p$id
+                                   , icon    = p$icon
+                                   )
+                         }
+                       )
   pluginItems <- lapply( plugins
                          , function(p) { 
                            tabItem(tabName = p$id, p$ui(experiment)) 
@@ -58,18 +99,55 @@ viewUI <- function(experiment, name, plugins) {
   )
   names(pluginItems) <- NULL
   
-  dashboardPage( dashboardHeader(title = paste("View", name))
-                 , dashboardSidebar(sidebarMenu(pluginsMenu))
-                 , dashboardBody(do.call(tabItems, pluginItems))
-  )
+  dashboardPage( dashboardHeader(title = "plateKinetics")
+               , dashboardSidebar( sidebarMenu( homeMenu
+                                              , pluginsMenu
+                                              )
+                                 , hr()
+                                 , p("Closing the viewer will return the updated experiment.")
+                                 , fluidRow( column( 10
+                                                   , actionButton( 'close'
+                                                                 , "Close"
+                                                                 , class = "btn-block"
+                                                                 )
+                                                   , offset = 1
+                                                   )
+                                   
+                                           )
+                                 , uiOutput('heartbeat')
+                                 )
+               , dashboardBody(do.call(tabItems, c(list(homeItem), pluginItems)))
+               )
 }
 
 viewServer <- function(experiment, plugins) {
   function(input, output, session) {
+    
+    #reactiveExperiment <- makeReactiveBinding(experiment)
+    
+    reactExp <- reactiveValues( design  = experiment$design
+                              , data    = experiment$data
+                              , factors = experiment$factors
+                              , map     = experiment$map
+                              , reduce  = experiment$reduce
+                              )
+    
     for (plugin in plugins) {
-      plugin$server(experiment)(input = input, output = output, session = session)
+      plugin$server(reactExp)(input = input, output = output, session = session)
     }
-  }
+    
+    #hack: for some reason app disconnects after 60s of inactivity when launched
+    #in Rstudio server
+    output$heartbeat <- renderUI({
+      invalidateLater(58 * 1000, session)
+      p(Sys.time(), style = "visibility: hidden;")
+    })
+    
+    observeEvent( input$close
+                , stopApp(reactiveValuesToList(reactExp))
+                )
+ 
+  }   
 }
 
 #' Add a plugin to the experiment viewer

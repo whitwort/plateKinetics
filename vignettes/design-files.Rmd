@@ -127,7 +127,58 @@ If no value is given this will default to all wells in the platform.
 
 ### `channels`
 
-The `channels` entry should hold an associative array/list that links an experimental plate read setting with a source data file.  For example a sub-entry `chan1: file1.txt` will use the function given by `loader` to load `file.txt` and label loaded values as `chan1`.  See the `source-files` vignette for details on accepted input data formats.
+The `channels` entry should hold an associative array/list that links an experimental plate reader setting with a source data file.  For example:
+
+```yaml
+channels:
+  channel1: file1.txt
+  channel2: file2.txt
+```
+
+Here the function given by the `loader` (above) would be used to load data from `file1.txt` and `file2.txt` and refer to those data as belonging to `channel1` and `channel1`, respectively.
+
+If you need to append data from multiple files (for example, when you have to stop and restart a run) that can be done using a [yaml][] list.  For example:
+
+```yaml
+channels:
+  channel1: 
+    - file-A.txt
+    - file-B.txt
+```
+
+Or the equivalent one-line syntax:
+
+```yaml
+channels:
+  channel1: [file-A.txt, file-B.txt]
+```
+
+Both of these examples would append time course data loaded from `file-B.txt` to the data in `file-A.txt`.  If the time stamps in the second file are all larger than the time stamps in the first file, it is assumed that they are abolute times and do not need to be adjusted.
+
+If this isn't the case, times in each file will be adjusted based on the ending time in the previous file.  Additionally, you can supply a set of `timeOffset` as a top-level design entry to include offsets in this calculation. 
+
+For example:
+
+```yaml
+channels:
+  channel1: 
+    - file-A.txt
+    - file-B.txt
+timeOffset: 100
+```
+
+In this case, the time points in `file-B.txt` would all be increased by the highest time point in `file-A.txt` plus 100.  The `timeOffset` entry should be a list if you are appending more than two files (with one fewer value than the number of files):
+
+```yaml
+channels:
+  channel1: 
+    - file-A.txt
+    - file-B.txt
+    - file-C.txt
+timeOffset: [100, 80]
+```
+
+Adjustments are made cumulatively across multiple files.
 
 ### `factors`
 

@@ -20,7 +20,8 @@ Collate:
   shinyui.R
   loaders.R
   factors.R
-  map-viewer.R
   apoindex.R
-  reduce-viewer.R
   doublingtime.R
+  map-viewer.R
+  reduce-viewer.R
+  

@@ -34,10 +34,23 @@ loadExperiment <- function( path      = getwd()
                           ) {
   
   data    <- mergeData(path, design)
-  factors <- data.frame( design$factors
+  
+  
+  address <- t(sapply( design$wells
+                     , function(well) { 
+                          which(design$platform == well, arr.ind = TRUE) 
+                       }
+                     )
+              )
+  
+  factors <- data.frame( row = address[,1]
+                       , col = address[,2]
+                       , design$factors
                        , row.names = design$wells
                        , stringsAsFactors = TRUE
                        )
+  
+  levels(factors$row) <- sort(unique(factors$row), decreasing = TRUE)
   
   list( design  = design
         
@@ -46,7 +59,10 @@ loadExperiment <- function( path      = getwd()
       , factors = factors
       
       # Mutated by analysis procedures
-      , map     = cbind(factors[data$well,], data)
+      , map     = data.frame( well = data$well
+                            , factors[data$well,]
+                            , data[-1]
+                            ) #cbind(factors[data$well,], data)
       , reduce  = factors
       
       )
@@ -123,12 +139,20 @@ loadDesign <- function( path       = getwd()
   }
   
   for (name in names(design$channels)) {
-    file <- fullPath(path, design$channels[[name]], findFiles)
-    if (!file.exists(file)) {
-      stop("No source file could be found for channel `", name, "` with name/pattern `", design$channels[name], "`.")
-    } else {
-      design$channels[name] <- file
+    files <- fullPath(path, design$channels[[name]], findFiles)
+    
+    for (n in 1:length(files)) {
+      if (!file.exists(files[n])) {
+        stop("No source file could be found for channel `", name, "` with name/pattern `", files[n], "`.")
+      }
     }
+    
+    if (length(files) > 1) {
+      design$channels[[name]] <- files
+    } else {
+      design$channels[name] <- files
+    }
+    
   }
   
   if (is.null(design$factors)) {
@@ -201,7 +225,8 @@ loadData   <- function(path, loader, design) {
   
   if ( all(spreadNames %in% colnames(x)) ) {
     # reformat spread to gather
-    df <- tidyr::gather(x[spreadNames], "well", "value", 2:(ncol(x)))
+    pre <- x[spreadNames]
+    df  <- tidyr::gather(pre, "well", "value", 2:(ncol(pre)))
     colnames(df)[1] <- "time"
     
   } else if ( all(gatheredNames %in% colnames(x)) ) {
@@ -226,6 +251,57 @@ loadData   <- function(path, loader, design) {
   df
 }
 
+#' Load data from multiple source files.
+#' 
+#' This function calls \code{\link{loadData}} for multiple input files, appends
+#' the results, and updates time stamps as direct in the design.
+#' 
+#' Usually there is no need to call this function directly; use 
+#' \code{\link{loadExperiment}} instead.
+#' 
+#' @param paths Source files to load.
+#' @param loader Function to use to load the source file.
+#' @param design Design object, usually created with \code{\link{loadDesign}}.
+#'   
+#' @details Several vignettes are included with this package to fully document 
+#'   the options for input files.  Run \code{vignette('source-files')} for a 
+#'   description of supported input file formats and loader functions.
+#'   
+#' @return A validated data.frame with a 'time', 'well', and 'value' column.
+#'   
+#' @export
+appendData <- function(paths, loader, design) {
+  
+  dataList <- lapply(paths, loadData, loader = loader, design = design)
+  
+  mins <- sapply(dataList, function(l) { min(l$time) })
+  maxs <- sapply(dataList, function(l) { max(l$time) })
+  n    <- length(dataList)
+  
+  # times in file N are not always greater than file N - 1
+  if ( !all(mins[-1] > maxs[-n]) ) {
+    
+    if (is.null(design$timeOffset)) {
+      warning('Loading from multiple source files, but no timeOffset specificed; assuming: 0.  This is almost certainly incorrect.')
+      design$timeOffset <- rep(0, times = n - 1)
+    }
+    if (length(design$timeOffset) != (n - 1)) {
+      stop('Loading data from multiple source files, but incorrect number of timeOffset values provided.  Expect: ', n - 1, ' Have: ', length(design$timeOffset))
+    }
+    
+    cumOffset <- cumsum(design$timeOffset)
+    cumMax    <- cumsum(maxs[-n])
+    
+    for (i in 1:(n - 1)) {
+      dataList[[i + 1]]$time <- dataList[[i + 1]]$time + cumOffset[i] + cumMax[i]
+    }
+    
+  }
+  
+  do.call(rbind, dataList)
+  
+}
+
 #' Load and merge data for all channels.
 #' 
 #' This function loads and merges source data for all channels in an experiment.
@@ -247,8 +323,12 @@ mergeData <- function(path, design) {
   
   loader   <- eval(parse(text = design$loader))
   dataList <- lapply( design$channels
-                    , function(file) { 
-                        loadData(file, loader, design) 
+                    , function(file) {
+                        if (length(file) > 1) {
+                          appendData(file, loader, design) 
+                        } else {
+                          loadData(file, loader, design)   
+                        }
                       }
                     )
   
@@ -401,7 +481,12 @@ expandWells <- function(wells, platform) {
   
   wells <- gsub("\\s", "", wells)
   
-  if (grepl(",", wells)) {
+  if (length(wells) > 1) {
+  
+    wells <- sapply(wells, expandWells, platform = platform)
+    wells <- c(wells, recursive = TRUE)
+    
+  } else if (grepl(",", wells)) {
     
     wells <-  sapply( strsplit(wells, ",")[[1]]
                     , function(s) { expandWells(s, platform) }
@@ -440,11 +525,17 @@ checkWell <- function(wells, platform) {
   }
 }
 
+
+
 fullPath <- function(path, file, findFiles) {
   filePath <- file.path(path, file)
-  if (!findFiles || file.exists(filePath)) {
+  
+  if (length(filePath) > 1) {
+    sapply(file, fullPath, path = path, findFiles = findFiles, USE.NAMES = FALSE)
+  } else if (!findFiles || file.exists(filePath)) {
     filePath
   } else {
     list.files(path, pattern = file, full.names = TRUE)[1]
   }
+  
 }

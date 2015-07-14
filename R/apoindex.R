@@ -15,4 +15,4 @@ apoindexServer <- function(experiment) {
   }
 }
 
-addPlugin(name = 'apoIndex', ui = apoindexUI, server = apoindexServer)
+addPlugin(name = 'apoIndex', ui = apoindexUI, server = apoindexServer, icon = icon("line-chart"))
