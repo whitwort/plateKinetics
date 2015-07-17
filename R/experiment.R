@@ -52,6 +52,8 @@ loadExperiment <- function( path      = getwd()
   
   levels(factors$row) <- sort(unique(factors$row), decreasing = TRUE)
   
+  design$analysis <- list()
+  
   list( design  = design
         
       # Source data structures
@@ -524,8 +526,6 @@ checkWell <- function(wells, platform) {
     stop("The following wells are not in the given platform:  ", wells[missing])
   }
 }
-
-
 
 fullPath <- function(path, file, findFiles) {
   filePath <- file.path(path, file)

@@ -3,14 +3,9 @@
 NULL
 
 newPluginList <- function(plugins = list()) {
-  list( add = function(name, ui, server, id, icon) {
-                plugins[[id]] <<- list( name   = name
-                                      , ui     = ui
-                                      , server = server
-                                      , id     = id
-                                      , icon   = icon
-                                      )
-        }
+  list( add = function(id, ...) {
+                plugins[[id]] <<- list(id = id, ...)
+              }
       , get = function(id = names(plugins)) { plugins[id] }
       )
 }
@@ -32,8 +27,9 @@ default.plugins <- newPluginList()
 viewExperiment <- function(experiment, plugins = default.plugins) {
   
   plugins <- listPlugins(plugins)
+  experiment$varName <- substitute(experiment)
   
-  app <- shinyApp( ui     = viewUI(experiment, substitute(experiment), plugins)
+  app <- shinyApp( ui     = viewUI(experiment, plugins)
                  , server = viewServer(experiment, plugins)
                  )
   
@@ -42,7 +38,7 @@ viewExperiment <- function(experiment, plugins = default.plugins) {
 }
 
 # Generate a shiny UI and server for the current plugins
-viewUI <- function(experiment, name, plugins) {
+viewUI <- function(experiment, plugins) {
   
   homeMenu <- menuItem('Overview', tabName = 'overview', icon = icon("dashboard"))
   
@@ -54,19 +50,20 @@ viewUI <- function(experiment, name, plugins) {
                                          , icon  = icon("table")
                                          , color = "aqua"
                                          )
-                               , valueBox( nrow(experiment$data)
-                                         , "Time points"
-                                         , icon  = icon("clock-o")
+                               , valueBox( length(design$wells)
+                                         , "Wells"
+                                         , icon  = icon("th")
                                          , color = "purple"
                                          )
+ 
                                , valueBox( length(design$factors)
                                          , "Factors"
                                          , icon  = icon("tags")
                                          , color = "yellow"
                                          )
-                               , valueBox( length(design$wells)
-                                         , "Wells"
-                                         , icon  = icon("th")
+                               , valueBox( nrow(experiment$data)
+                                         , "Time points"
+                                         , icon  = icon("clock-o")
                                          , color = "green"
                                          )
                                , valueBox( total
@@ -81,7 +78,9 @@ viewUI <- function(experiment, name, plugins) {
                                          )
                                )
                      , br()
-                     , p("Currently loaded experiment:", strong(name))
+                     , p( "Currently loaded experiment:"
+                        , strong(experiment$varName)
+                        )
                      )
   
   pluginsMenu <- lapply( plugins
@@ -130,6 +129,7 @@ viewServer <- function(experiment, plugins) {
                               , factors = experiment$factors
                               , map     = experiment$map
                               , reduce  = experiment$reduce
+                              , varName = experiment$varName
                               )
     
     for (plugin in plugins) {
@@ -168,15 +168,8 @@ viewServer <- function(experiment, plugins) {
 #'   example plugin implementations.
 #'   
 #' @export
-addPlugin <- function( name
-                     , ui
-                     , server  
-                     , id      = gsub("\\s", "", tolower(name))
-                     , icon    = shiny::icon("th")
-                     , plugins = default.plugins
-                     ) { 
-  
-  plugins$add(name, ui, server, id, icon)
+addPlugin <- function(id, ..., pluginList = default.plugins) {
+  pluginList$add(id = id, ...)
 }
 
 #' List installed experiment viewer plugins

@@ -61,4 +61,4 @@ factorServer <- function(experiment) {
 
 
 # Register a new plugin for the experimental viewer
-addPlugin(name = 'Plate setup', ui = factorUI, server = factorServer, icon = icon("tags"))
+addPlugin(id = 'factors', name = 'Plate setup', ui = factorUI, server = factorServer, icon = icon("tags"))

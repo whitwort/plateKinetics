@@ -9,7 +9,8 @@
 #' @export
 plotMapFacet <- function(experiment, value) {
   ggplot(experiment$map, aes_string(x = "time", y = value)) +
-    geom_point(size = I(0.85)) +
+    #geom_point(size = I(0.85)) +
+    geom_line() +
     facet_grid(row ~ col) +
     theme_bw() + 
     theme( axis.ticks.x = element_blank()
@@ -19,19 +20,38 @@ plotMapFacet <- function(experiment, value) {
          )
 }
 
-mapValueNames <- function(experiment) {
-  setdiff( colnames(experiment$map)
-         , c('well', 'time', colnames(experiment$reduce))
-         )
+mapNumericNames <- function(experiment) {
+  names <- colnames(experiment$map)
+  names[ sapply( names
+               , function(n) { is.numeric(experiment$map[[n]]) & (n != 'time') }
+               ) 
+       ]
 }
 
+mapChannels <- function(experiment) {
+  numNames <- mapNumericNames(experiment)
+  numNames[ !(numNames %in% colnames(experiment$factors)) ]
+}
+
+mapNumericFactors <- function(experiment) {
+  numNames  <- mapNumericNames(experiment)
+  chanNames <- mapChannels(experiment)
+  setdiff(numNames, chanNames)
+}
+mapCategoricalFactors <- function(experiment) {
+  names <- colnames(experiment$map)
+  names[ sapply(names, function(n) { !is.numeric(experiment$map[[n]])}) ]
+}
+mapAllFactors <- function(experiment) {
+  c(mapCategoricalFactors(experiment), mapNumericFactors(experiment))
+}
 
 mapUI <- function(experiment) {
   tagList( fluidRow( uiOutput('mapOverviewBox'))
          , fluidRow( box( uiOutput('mapViewBox.controls')
                         , hr()
                         , plotOutput('mapViewBox.plot')
-                        , title  = "Viewer"
+                        , title  = "Kinetics viewer"
                         , status = "success"
                         , width  = 12
                         )
@@ -87,7 +107,7 @@ mapServer <- function(experiment) {
                 "on a well to reset the viewer."
                )
       
-      tabs <- lapply( mapValueNames(experiment)
+      tabs <- lapply( mapChannels(experiment)
                     , function(name) {
                         box.id <- paste0('mapOverviewBox.', name)
                         
@@ -161,17 +181,10 @@ mapServer <- function(experiment) {
       
       times <- c(min(experiment$map$time), max(experiment$map$time))
       
-      allNames <- colnames(experiment$map)
-      valNames <- mapValueNames(experiment)
-      catNames <- allNames[ !sapply(experiment$map, is.numeric) &
-                            !(allNames %in% valNames)
-                          ]
-      colNames <- allNames[!(allNames %in% valNames)]
-      
       div( fluidRow( column( 4
                            , selectInput( 'mapViewBox.values'
                                         , 'Plot:'
-                                        , valNames
+                                        , mapChannels(experiment)
                                         , multiple = TRUE
                                         )
                            )
@@ -194,7 +207,7 @@ mapServer <- function(experiment) {
          , fluidRow( column( 4
                            , selectInput( 'mapViewBox.color'
                                         , 'Color by:'
-                                        , c(colNames, 'channel')
+                                        , mapAllFactors(experiment)
                                         , selected = 'well'
                                         , multiple = FALSE
                                         )
@@ -202,7 +215,7 @@ mapServer <- function(experiment) {
                    , column( 4
                            , selectInput( 'mapViewBox.shape'
                                         , "Point shape:"
-                                        , c(catNames, 'channel')
+                                        , c('channel', mapCategoricalFactors(experiment))
                                         , selected = 'channel'
                                         , multiple = FALSE
                                         )
@@ -249,9 +262,9 @@ mapServer <- function(experiment) {
   }
 }
 
-addPlugin( 'Kinetics'
+addPlugin( id     = 'mapview' 
+         , name   = 'Kinetics'
          , ui     = mapUI
          , server = mapServer
-         , id     = 'mapview'
          , icon   = icon("clock-o")
          )

@@ -4,10 +4,11 @@
 \alias{addPlugin}
 \title{Add a plugin to the experiment viewer}
 \usage{
-addPlugin(name, ui, server, id = gsub("\\\\s", "", tolower(name)),
-  icon = shiny::icon("th"), plugins = default.plugins)
+addPlugin(id, ..., pluginList = default.plugins)
 }
 \arguments{
+\item{id}{String to use for element id.}
+
 \item{name}{A character name to use for the associated dashboard tab.}
 
 \item{ui}{A function to call with the current experiment that returns a shiny
@@ -18,8 +19,6 @@ the only argument.}
 and returns a shiny server function to handle the plugin.  The returned
 shiny server function should take input, output and session arguments (in
 that order).}
-
-\item{id}{String to use for element id.}
 
 \item{icon}{Icon to use in the sidebar menu.}
 

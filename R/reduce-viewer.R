@@ -10,9 +10,9 @@ reduceServer <- function(experiment, id) {
 }
 
 id <- 'reduceview'
-addPlugin( 'Factor summary'
+addPlugin( id     = id
+         , name   = 'Factors'
          , ui     = function(experiment) { reduceUI(experimeent, id)    }
          , server = function(exerpiment) { reduceServer(experiment, id) }
-         , id     = id
          , icon   = icon("bar-chart")
          )

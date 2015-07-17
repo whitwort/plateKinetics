@@ -24,4 +24,4 @@ Collate:
   doublingtime.R
   map-viewer.R
   reduce-viewer.R
-  
+  result-tables.R
