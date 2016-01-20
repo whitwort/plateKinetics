@@ -124,7 +124,7 @@ lagFilter <- function(od, lagWindow = 3) {
   od > (median(od[1:lagWindow]) * 2)
 }
 
-plateauFilter <- function(od, cutoff = 0.7) { od < cutoff }
+plateauFilter <- function(od, cutoff = 0.5) { od < cutoff }
 
 bubbleFilter <- function(od, tolerance = 3, windowSize = 3) {
   
@@ -259,7 +259,29 @@ doublingTimeUI <- function(experiment) {
                                                         , uiOutput('dt.runSelection')
                                                         )
                                                 )
-                                     , plotOutput('dt.Overview')
+                                     , plotOutput( 'dt.overview'
+                                                 , click = 'dt.overview.click'
+                                                 )
+                                     , hr()
+                                     , p("Click and drag to change which data points 
+                                         are being used for the doubling time calculation. 
+                                         The solid line represents the model fit.")
+                                     , fluidRow( column( 10 
+                                                       , plotOutput( 'dt.edit'
+                                                                   , brush = "dt.edit.brush"
+                                                                   )
+                                                       )
+                                               , column( 2
+                                                       , selectInput( 'dtViewBox.scale'
+                                                                    , 'Value scale:'
+                                                                    , c('linear', 'log')
+                                                                    , selected = 'linear'
+                                                                    , multiple = FALSE
+                                                                    )
+                                                       , p("Doubling time:")
+                                                       , verbatimTextOutput('dt.DoublingTime')
+                                                       )
+                                               )
                                      )
                            , title = "Doubling time"
                            , width = 12
@@ -378,7 +400,7 @@ doublingTimeServer <- function(experiment) {
                  )
     })
     
-    output$dt.Overview <- renderPlot({
+    output$dt.overview <- renderPlot({
       if (!is.null(input$dt.editRun)) {
         run <- experiment$analysis$doublingTime[[input$dt.editRun]]
         plotDoublingTimeFacet( experiment
@@ -386,6 +408,73 @@ doublingTimeServer <- function(experiment) {
                              , included = run$mapName
                              )
       }
+    })
+    
+    edit.run <- reactive({
+      if (!is.null(input$dt.editRun)) {
+        experiment$analysis$doublingTime[[input$dt.editRun]]
+      }
+    })
+    
+    edit.well <- reactive({
+      info  <- input$dt.overview.click
+      getReduceGridWell(info, experiment)
+    })
+    
+    edit.df  <- reactive({
+      run <- edit.run()
+      if (!is.null(run)) {
+        wells <- experiment$map$well
+        rows  <- wells %in% edit.well()
+        
+        if (any(rows)) {
+          experiment$map[rows, c('time', run$value, run$mapName)]
+        }
+      }
+    })
+    
+    output$dt.edit <- renderPlot({
+      run <- edit.run()
+      
+      if (!is.null(run)) {
+        df   <- edit.df()
+        
+        if (!is.null(df)) {
+          dt      <- experiment$reduce[edit.well(), run$reduceName]
+          startOD <- min( df[df[[run$mapName]], run$value] )
+          startT  <- min( df[df[[run$mapName]], 'time'] )
+          
+          df$model <- startOD * ( 2^( (df$time - startT) / dt) )
+           
+          if (input$dtViewBox.scale == 'log') { 
+            val  <- paste0("log(", run$value, ")")
+            modl <- "log(model)"
+            ymin <- log(min(df[[run$value]]))
+            ymax <- log(max(df[[run$value]]))
+          } else { 
+            val  <- run$value
+            modl <- "model"
+            ymin <- min(df[[run$value]])
+            ymax <- max(df[[run$value]])
+          }
+          
+          ggplot(df, aes(x = time)) + 
+            geom_line(aes_string(y = modl), color = "#00B0F6") +
+            geom_point( aes_string( y     = val
+                                  , color = run$mapName
+                                  )
+                      ) +
+            scale_color_manual(values = c("#999999", "#00B0F6")) +
+            theme(legend.position = "none") + 
+            ylim(ymin, ymax)
+        }
+        
+      }
+    })
+    
+    output$dt.DoublingTime <- renderPrint({
+      message("update")
+      print(input$dt.edit.brush)
     })
 
   }

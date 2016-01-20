@@ -66,7 +66,7 @@ getReduceGridWell <- function(info, experiment) {
   rows   <- experiment$reduce$row
   cols   <- experiment$reduce$col
   
-  df <-experiment$reduce[rows == row.n & cols == col.n, ]
+  df <- experiment$reduce[rows == row.n & cols == col.n, ]
   
   if (nrow(df) != 0) {
     row.names(df)
