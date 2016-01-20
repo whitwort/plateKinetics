@@ -15,12 +15,12 @@
 #' @param reduceName The name of the column on the $reduce data.frame to use to 
 #'   save the doubling time for each well.
 #' @param filters A character vector with the ids of filters to use.  See 
-#'   \code{\link{listPlugins}(dt.filters)} for available filters. 
+#'   \code{\link{dt.filters}} for available filters. 
 #'   Alternatively, use filterFuncs to pass in a list of functions directly.
 #' @param filterFuncs A list of OD filter functions.  Each should take an od
 #'   vector as the sole argument.  Alternatively, specify filters.
 #' @param timeFormat A character vector with the name of a time formatting 
-#'   function.  See \code{\link{listPlugins}(dt.timeFormats)} for options. 
+#'   function.  See \code{\link{dt.timeFormats}} for options. 
 #'   Alternatively, use formatFunc to pass in a formatting function directly.
 #' @param formatFunc A time formatting function.  Should take the doubling time
 #'   value as the sole argument.  Alternatively, specify a timeFormat.
@@ -36,11 +36,11 @@ doublingTime <- function( experiment
                         , filters     = c('Lag', 'Plateau')
                         , filterFuncs = lapply( filters
                                               , function(name) { 
-                                                  listPlugins(dt.filters)[[name]]$func 
+                                                  dt.filters[[name]]$func 
                                                 }
                                               )
                         , timeFormat  = 'none'
-                        , formatFunc  = listPlugins(dt.timeFormats)[[timeFormat]]$func
+                        , formatFunc  = dt.timeFormats[[timeFormat]]$func
                         ) {
   
   experiment$map[[mapName]] <- c(sapply( row.names(experiment$reduce)
@@ -106,42 +106,25 @@ calculateDT <- function(well, experiment, value, mapName, formatFunc) {
 #'   
 #' @export
 plotDoublingTimeFacet <- function(experiment, value, included) {
-  ggplot(experiment$map, aes_string(x = "time", y = value)) +
-    geom_point(size = I(0.85)) +
+  ggplot(experiment$map, aes_string(x = "time", y = value, color = included)) +
+    geom_point(size = I(0.65)) +
     facet_grid(row ~ col) +
-    theme_bw() + 
+    scale_color_manual(values = c("#999999", "#00B0F6")) +  
     theme( axis.ticks.x = element_blank()
-           , axis.ticks.y = element_blank()
-           , axis.text.x  = element_blank()
-           , axis.text.y  = element_blank()
-    )
+         , axis.ticks.y = element_blank()
+         , axis.text.x  = element_blank()
+         , axis.text.y  = element_blank()
+         , legend.position = "none"
+         )
 }
 
-#' Timepoint filter plugins
-#' @export
-dt.filters <- newPluginList()
 
+# Filters
 lagFilter <- function(od, lagWindow = 3) {
   od > (median(od[1:lagWindow]) * 2)
 }
-addPlugin( id         = 'Lag'
-         , func       =  lagFilter
-         , lagWindow  = numericInput( 'dt.lagFilter.lagWindow'
-                                    , "Lag window"
-                                    , value = 3
-                                    )
-         , pluginList = dt.filters
-         )
 
-plateauFilter <- function(od, cutoff = 0.85) { od < cutoff }
-addPlugin( id         = 'Plateau'
-         , func       = plateauFilter
-         , cutoff     = numericInput( 'dt.plateauFilter.cutoff'
-                                    , 'OD cutoff'
-                                    , value = 0.85
-                                    )
-         , pluginList = dt.filters
-         )
+plateauFilter <- function(od, cutoff = 0.7) { od < cutoff }
 
 bubbleFilter <- function(od, tolerance = 3, windowSize = 3) {
   
@@ -167,37 +150,52 @@ bubbleFilter <- function(od, tolerance = 3, windowSize = 3) {
   neighborhoodDelta < cutoff
   
 }
-addPlugin( id         = 'Bubble reducer'
-         , func       = bubbleFilter
-         , tolerance  = numericInput( 'dt.bubbleFilter.tolerance'
-                                    , 'Tolerance'
-                                    , value = 3
-                                    )
-         , windowSize = numericInput( 'dt.bubbleFilter.windowSize'
-                                    , 'Window size'
-                                    , value = 3
-                                    )
-         , pluginList = dt.filters
-         )
+
+#' Timepoint filter plugins
+#' @export
+dt.filters <- list( Lag              = list( id         = 'Lag'
+                                           , func       =  lagFilter
+                                           , lagWindow  = numericInput( 'dt.lagFilter.lagWindow'
+                                                                      , "Lag window"
+                                                                      , value = 3
+                                                                      )
+                                           )
+                  , Plateau          = list( id         = 'Plateau'
+                                           , func       = plateauFilter
+                                           , cutoff     = numericInput( 'dt.plateauFilter.cutoff'
+                                                                      , 'OD cutoff'
+                                                                      , value = 0.85
+                                                                      )
+                                           )
+                  , `Bubble reducer` = list( id         = 'Bubble reducer'
+                                           , func       = bubbleFilter
+                                           , tolerance  = numericInput( 'dt.bubbleFilter.tolerance'
+                                                                      , 'Tolerance'
+                                                                      , value = 3
+                                                                      )
+                                           , windowSize = numericInput( 'dt.bubbleFilter.windowSize'
+                                                                      , 'Window size'
+                                                                      , value = 3
+                                                                      )
+                                           )
+                  )
 
 #' Time conversion plugins 
 #' @export
-dt.timeFormats <- newPluginList()
-addPlugin( id   = 'none'
-         , name = "None"
-         , func = function(v) { v }
-         , pluginList = dt.timeFormats
-         )
-addPlugin( id   = 'min'
-         , name = "Seconds to minutes"
-         , func = function(v) { v / 60 }
-         , pluginList = dt.timeFormats
-         )
-addPlugin( id   = 'min.round'
-         , name = "Seconds to minutes (rounded)"
-         , func = function(v) { round(v / 60) }
-         , pluginList = dt.timeFormats
-         )
+dt.timeFormats <- list( none      = list( id   = 'none'
+                                        , name = "None"
+                                        , func = function(v) { v }
+                                        )
+                      , min       = list( id   = 'min'
+                                        , name = "Seconds to minutes"
+                                        , func = function(v) { v / 60 }
+                                        )
+                      , min.round = list( id   = 'min.round'
+                                        , name = "Seconds to minutes (rounded)"
+                                        , func = function(v) { round(v / 60) }
+                                        )
+                      )
+
 
 doublingTimeUI <- function(experiment) {
   tagList( fluidRow( tabBox( tabPanel( title = "Run"
@@ -252,7 +250,9 @@ doublingTimeUI <- function(experiment) {
                                                           , strong(" click ")
                                                           , "a well to open it in the editor below. 
                                                              If the experiment includes many wells this 
-                                                             plot will take a few moments to render."
+                                                             plot will take a few moments to render. Blue
+                                                             points represent data being used in the 
+                                                             doubling time calculation."
                                                           )
                                                        )
                                                 , column( 4
@@ -285,15 +285,15 @@ doublingTimeServer <- function(experiment) {
     output$dt.selectFilters <- renderUI({
       selectInput( 'dt.filters'
                  , label    = 'Time point filters'
-                 , choices  = names(listPlugins(dt.filters))
+                 , choices  = names(dt.filters)
                  , selected = c('Lag', 'Plateau')
                  , multiple = TRUE
                  )
     })
     
     output$dt.conversion <- renderUI({
-      v        <- names(listPlugins(dt.timeFormats))
-      names(v) <- sapply( listPlugins(dt.timeFormats)
+      v        <- names(dt.timeFormats)
+      names(v) <- sapply( dt.timeFormats
                         , function(a) { a$name }
                         )
       selectInput( 'dt.timeFormat'
@@ -309,7 +309,7 @@ doublingTimeServer <- function(experiment) {
     }
     
     output$dt.filterOptions <- renderUI({
-      allFilters <- listPlugins(dt.filters)
+      allFilters <- dt.filters
       filters    <- allFilters[input$dt.filters]
       
       formatSection <- function(name) {
@@ -322,7 +322,6 @@ doublingTimeServer <- function(experiment) {
       
       div( class = 'dropdown'
          , id    = 'dtOptionsMenuDropdown'
-         # , style = 'padding-top: 25px;'
          , tags$script(" $(document).ready(function() {
                             $('#dtOptionsMenuDropdown .dropdown-menu').on({ 
                                 'click':function(e){ e.stopPropagation(); }
@@ -360,14 +359,15 @@ doublingTimeServer <- function(experiment) {
       }
 
       run <- list( reduceName = input$dt.saveName
-                 , mapName  = paste(input$dt.saveName, "included", sep = ".")
-                 , value    = input$dt.value
+                 , mapName    = paste(input$dt.saveName, "included", sep = ".")
+                 , value      = input$dt.value
                  )
       
       experiment$analysis$doublingTime[[input$dt.saveName]] <- run
       
-      updateSelectInput(session, 'dt.editRun', selected = input$dt.saveName)
       updateTabItems(session, 'dt.tabBox', 'Edit')
+      #updateSelectizeInput(session, 'dt.editRun', selected = input$dt.saveName)
+    
     })
     
     output$dt.runSelection <- renderUI({
@@ -391,9 +391,3 @@ doublingTimeServer <- function(experiment) {
   }
 }
 
-addPlugin( id     = 'doublingtime'
-         , ui     = doublingTimeUI
-         , server = doublingTimeServer
-         , name   = 'Doubling time'
-         , icon   = icon('signal')
-         )

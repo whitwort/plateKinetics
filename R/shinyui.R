@@ -2,15 +2,6 @@
 #' @import shinydashboard
 NULL
 
-newPluginList <- function(plugins = list()) {
-  list( add = function(id, ...) {
-                plugins[[id]] <<- list(id = id, ...)
-              }
-      , get = function(id = names(plugins)) { plugins[id] }
-      )
-}
-default.plugins <- newPluginList()
-
 #' View an experiment in an interactive shiny app
 #' 
 #' The experiment viewer is an interactive dashboard style shiny app that is 
@@ -26,7 +17,6 @@ default.plugins <- newPluginList()
 #' @export
 viewExperiment <- function(experiment, plugins = default.plugins) {
   
-  plugins <- listPlugins(plugins)
   experiment$varName <- substitute(experiment)
   
   app <- shinyApp( ui     = viewUI(experiment, plugins)
@@ -92,10 +82,10 @@ viewUI <- function(experiment, plugins) {
                          }
                        )
   pluginItems <- lapply( plugins
-                         , function(p) { 
+                       , function(p) { 
                            tabItem(tabName = p$id, p$ui(experiment)) 
                          }
-  )
+                       )
   names(pluginItems) <- NULL
   
   dashboardPage( dashboardHeader(title = "plateKinetics")
@@ -147,37 +137,7 @@ viewServer <- function(experiment, plugins) {
                 , stopApp(reactiveValuesToList(reactExp))
                 )
  
-  }   
+  }
 }
 
-#' Add a plugin to the experiment viewer
-#' 
-#' @param name A character name to use for the associated dashboard tab.
-#' @param ui A function to call with the current experiment that returns a shiny
-#'   UI for the plugin tab.  The function should take the experiment object as 
-#'   the only argument.
-#' @param server A function that takes an experiment object as the only argument
-#'   and returns a shiny server function to handle the plugin.  The returned 
-#'   shiny server function should take input, output and session arguments (in 
-#'   that order).
-#' @param id String to use for element id.
-#' @param icon Icon to use in the sidebar menu.
-#' @param plugins A plugin set.  Defaults to the package wide plugin set.
-#'   
-#' @details See factors.R, doublingtime.R and apoindex.R in this package for
-#'   example plugin implementations.
-#'   
-#' @export
-addPlugin <- function(id, ..., pluginList = default.plugins) {
-  pluginList$add(id = id, ...)
-}
-
-#' List installed experiment viewer plugins
-#'
-#' @param plugins A plugin set.  Defaults to the package wide set.
-#'
-#' @return A list of plugins
-#' 
-#' @export
-listPlugins <- function(plugins = default.plugins) { plugins$get() }
 

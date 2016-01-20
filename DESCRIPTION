@@ -4,24 +4,37 @@ Title: Analysis of kinetic reads from multiwell plates
 Version: 0.1
 Author: Gregg Whitworth
 Maintainer: Gregg Whitworth <whitwort@gmail.com>
-Description: This package provides a set of tools for analyzing absorbance and 
-  fluorescence intensity data recorded over time in multiwell plate format. 
-  Tools are include to help with optimized doubling time calculations as well 
-  as data annotation and visualization.
+Description: This package provides a set of tools for analyzing absorbance and
+    fluorescence intensity data recorded over time in multiwell plate format.
+    Tools are include to help with optimized doubling time calculations as well
+    as data annotation and visualization.
 URL: http://github.com/whitwort/plateKinetics
 BugReports: http://github.com/whitwort/plateKinetics/issues
 License: GPL-2
 VignetteBuilder: knitr
-Suggests: knitr, testthat
-Imports: yaml, tidyr, shiny, shinydashboard, ggplot2
-Collate: 
-  plateKinetics.R
-  experiment.R
-  shinyui.R
-  loaders.R
-  factors.R
-  apoindex.R
-  doublingtime.R
-  map-viewer.R
-  reduce-viewer.R
-  result-tables.R
+Suggests:
+    knitr,
+    testthat
+Imports:
+    yaml,
+    tidyr,
+    shiny,
+    shinydashboard,
+    ggplot2,
+    DT
+Depends:
+    shiny,
+    shinydashboard
+Collate:
+    plateKinetics.R
+    experiment.R
+    loaders.R
+    factors.R
+    apoindex.R
+    doublingtime.R
+    map-viewer.R
+    reduce-viewer.R
+    result-tables.R
+    plugins.R
+    shinyui.R
+RoxygenNote: 5.0.1

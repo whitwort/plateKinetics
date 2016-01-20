@@ -262,9 +262,3 @@ mapServer <- function(experiment) {
   }
 }
 
-addPlugin( id     = 'mapview' 
-         , name   = 'Kinetics'
-         , ui     = mapUI
-         , server = mapServer
-         , icon   = icon("clock-o")
-         )

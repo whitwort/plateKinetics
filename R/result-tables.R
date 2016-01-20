@@ -6,7 +6,7 @@ resultUI <- function(experiment) {
                 tab."
               )
   redText <- p("The results from analysis procedures which produce one value per 
-                well are stored are stored in the `", experiment$varName, 
+                well are stored in the `", experiment$varName, 
                 "$reduce` data.frame.  You can explore these data on the 
                 'Factors' tab."
               )
@@ -19,7 +19,7 @@ resultUI <- function(experiment) {
                                           )
                                   )
                         , hr()
-                        , fluidRow(column(12, dataTableOutput('rt.map')))
+                        , fluidRow(column(12, DT::dataTableOutput('rt.map')))
                         , title  = "Kinetic analysis (map)"
                         , width  = 12
                         , status = "success"
@@ -34,7 +34,7 @@ resultUI <- function(experiment) {
                                           )
                                   )
                         , hr()
-                        , fluidRow(column(12, dataTableOutput('rt.reduce')))
+                        , fluidRow(column(12, DT::dataTableOutput('rt.reduce')))
                         , title  = "Factor analysis (reduce)"
                         , width  = 12
                         , status = "warning"
@@ -68,22 +68,20 @@ resultServer <- function(experiment) {
                                                 , 'text/csv'
                                                 )
     
-    dtOptions <- list( pageLength = 10
-      
-                     )
-    output$rt.map    <- renderDataTable( { experiment$map    }
-                                       , options = dtOptions
-                                       )
-    output$rt.reduce <- renderDataTable( { experiment$reduce }
-                                       , options = dtOptions
-                                       )
+    output$rt.map <- DT::renderDataTable({
+      DT::datatable( experiment$map
+                   , filter  = 'top'
+                   , options = list(pageLength = 10)
+                   )
+    })
+    
+    output$rt.reduce <- DT::renderDataTable({
+      DT::datatable( experiment$reduce
+                   , filter  = 'top'
+                   , options = list(pageLength = 10)
+                   )
+    })
     
   }
 }
 
-addPlugin( id     = 'resulttables'
-         , ui     = resultUI
-         , server = resultServer
-         , name   = 'Result tables'
-         , icon   = icon("th")
-         )

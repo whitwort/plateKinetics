@@ -23,11 +23,6 @@ vignette('getting-started')
 
 Or if you'd rather jump right in, see the help page for the main entry point function `loadExperiment`.
 
-## To do
-
-* Move from ggplot2 to ggvis graphics when the latter matures
-* Better documentation for the viewer plugin system
-
 ## License
 
-Copyright © 2015 Gregg Whitworth and licensed under [GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
+Copyright © 2016 Gregg Whitworth and licensed under [GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
