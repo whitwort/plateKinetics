@@ -268,8 +268,11 @@ doublingTimeUI <- function(experiment) {
                                          The solid line represents the model fit.")
                                      , fluidRow( column( 10 
                                                        , plotOutput( 'dt.edit'
-                                                                   , brush = "dt.edit.brush"
-                                                                   )
+                                                                    , brush = brushOpts( id         = "dt.edit.brush"
+                                                                                       , direction  = "x" 
+                                                                                       , resetOnNew = TRUE
+                                                                                       )
+                                                                    )
                                                        )
                                                , column( 2
                                                        , selectInput( 'dtViewBox.scale'
@@ -435,45 +438,42 @@ doublingTimeServer <- function(experiment) {
     
     output$dt.edit <- renderPlot({
       run <- edit.run()
-      
-      if (!is.null(run)) {
-        df   <- edit.df()
+      df  <- edit.df()
         
-        if (!is.null(df)) {
-          dt      <- experiment$reduce[edit.well(), run$reduceName]
-          startOD <- min( df[df[[run$mapName]], run$value] )
-          startT  <- min( df[df[[run$mapName]], 'time'] )
-          
-          df$model <- startOD * ( 2^( (df$time - startT) / dt) )
-           
-          if (input$dtViewBox.scale == 'log') { 
-            val  <- paste0("log(", run$value, ")")
-            modl <- "log(model)"
-            ymin <- log(min(df[[run$value]]))
-            ymax <- log(max(df[[run$value]]))
-          } else { 
-            val  <- run$value
-            modl <- "model"
-            ymin <- min(df[[run$value]])
-            ymax <- max(df[[run$value]])
-          }
-          
-          ggplot(df, aes(x = time)) + 
-            geom_line(aes_string(y = modl), color = "#00B0F6") +
-            geom_point( aes_string( y     = val
-                                  , color = run$mapName
-                                  )
-                      ) +
-            scale_color_manual(values = c("#999999", "#00B0F6")) +
-            theme(legend.position = "none") + 
-            ylim(ymin, ymax)
+      if (!is.null(df)) {
+        dt      <- experiment$reduce[edit.well(), run$reduceName]
+        startOD <- min( df[df[[run$mapName]], run$value] )
+        startT  <- min( df[df[[run$mapName]], 'time'] )
+        
+        df$model <- startOD * ( 2^( (df$time - startT) / dt) )
+         
+        if (input$dtViewBox.scale == 'log') { 
+          val  <- paste0("log(", run$value, ")")
+          modl <- "log(model)"
+          ymin <- log(min(df[[run$value]]))
+          ymax <- log(max(df[[run$value]]))
+        } else { 
+          val  <- run$value
+          modl <- "model"
+          ymin <- min(df[[run$value]])
+          ymax <- max(df[[run$value]])
         }
         
+        ggplot(df, aes(x = time)) + 
+          geom_line(aes_string(y = modl), color = "#00B0F6") +
+          geom_point( aes_string( y     = val
+                                , color = run$mapName
+                                )
+                    ) +
+          scale_color_manual(values = c("#999999", "#00B0F6")) +
+          theme(legend.position = "none") + 
+          ylim(ymin, ymax)
       }
+        
+      
     })
     
     output$dt.DoublingTime <- renderPrint({
-      message("update")
       print(input$dt.edit.brush)
     })
 
