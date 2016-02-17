@@ -22,8 +22,10 @@ viewExperiment <- function(experiment, plugins = default.plugins) {
   app <- shinyApp( ui     = viewUI(experiment, plugins)
                  , server = viewServer(experiment, plugins)
                  )
-  
-  runApp(app)
+
+  runGadget( app
+           , viewer = dialogViewer("View Experiment", width = 1250, height = 1000)
+           )
   
 }
 
@@ -93,7 +95,7 @@ viewUI <- function(experiment, plugins) {
                                               , pluginsMenu
                                               )
                                  , hr()
-                                 , p("Closing the viewer will return the updated experiment.")
+                                 , p("Closing the viewer will return the updated experiment object.")
                                  , fluidRow( column( 10
                                                    , actionButton( 'close'
                                                                  , "Close"
@@ -126,15 +128,15 @@ viewServer <- function(experiment, plugins) {
       plugin$server(reactExp)(input = input, output = output, session = session)
     }
     
-    #hack: for some reason app disconnects after 60s of inactivity when launched
-    #in Rstudio server
+    # hack: for some reason app disconnects after 60s of inactivity when launched
+    # in Rstudio server
     output$heartbeat <- renderUI({
       invalidateLater(58 * 1000, session)
       p(Sys.time(), style = "visibility: hidden;")
     })
     
     observeEvent( input$close
-                , stopApp(reactiveValuesToList(reactExp))
+                , stopApp(returnValue = invisible(reactiveValuesToList(reactExp)))
                 )
  
   }

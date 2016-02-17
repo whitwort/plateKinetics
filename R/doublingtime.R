@@ -19,11 +19,6 @@
 #'   Alternatively, use filterFuncs to pass in a list of functions directly.
 #' @param filterFuncs A list of OD filter functions.  Each should take an od
 #'   vector as the sole argument.  Alternatively, specify filters.
-#' @param timeFormat A character vector with the name of a time formatting 
-#'   function.  See \code{\link{dt.timeFormats}} for options. 
-#'   Alternatively, use formatFunc to pass in a formatting function directly.
-#' @param formatFunc A time formatting function.  Should take the doubling time
-#'   value as the sole argument.  Alternatively, specify a timeFormat.
 #'   
 #' @return An updated experiment object with new/updated columns on $map and 
 #'   $reduce.
@@ -55,7 +50,6 @@ doublingTime <- function( experiment
                                            , experiment = experiment
                                            , value      = value
                                            , mapName    = mapName
-                                           , formatFunc = formatFunc
                                            )
   
   experiment
@@ -78,16 +72,19 @@ filterDT    <- function(well, experiment, value, filterFuncs) {
   filterPoints(ods, filterFuncs)
 }
 
-calculateDT <- function(well, experiment, value, mapName, formatFunc) {
+calculateDT <- function(well, experiment, value, mapName) {
   wells <- experiment$map$well
-  df    <- experiment$map[wells == well & experiment$map[[mapName]],]
+  df    <- experiment$map[wells == well & (experiment$map[[mapName]]),]
   time  <- df$time
   od    <- df[[value]]
   
+  fitDT(od, time)
+}
+
+fitDT <- function(od, time) {
   if (length(od) > 0) {
     fit <- lm(log(od) ~ time)
-    dt  <- log(2) / coef(fit)["time"]
-    formatFunc(dt)
+    log(2) / coef(fit)["time"]
   } else {
     NA
   }
@@ -265,7 +262,10 @@ doublingTimeUI <- function(experiment) {
                                      , hr()
                                      , p("Click and drag to change which data points 
                                          are being used for the doubling time calculation. 
-                                         The solid line represents the model fit.")
+                                         The solid line represents the model fit. Don't forget to hit"
+                                        , strong(" Save ")
+                                        , "after you've made a change you want to keep."
+                                        )
                                      , fluidRow( column( 10 
                                                        , plotOutput( 'dt.edit'
                                                                     , brush = brushOpts( id         = "dt.edit.brush"
@@ -282,7 +282,8 @@ doublingTimeUI <- function(experiment) {
                                                                     , multiple = FALSE
                                                                     )
                                                        , p("Doubling time:")
-                                                       , verbatimTextOutput('dt.DoublingTime')
+                                                       , verbatimTextOutput('dt.doublingTime')
+                                                       , uiOutput('dt.saveButtonUI')
                                                        )
                                                )
                                      )
@@ -376,7 +377,6 @@ doublingTimeServer <- function(experiment) {
                   , value      = input$dt.value
                   , reduceName = input$dt.saveName
                   , filters    = input$dt.filters
-                  , timeFormat = input$dt.timeFormat
                   )
       
       if (is.null(experiment$analysis$doublingTime)) {
@@ -386,6 +386,7 @@ doublingTimeServer <- function(experiment) {
       run <- list( reduceName = input$dt.saveName
                  , mapName    = paste(input$dt.saveName, "included", sep = ".")
                  , value      = input$dt.value
+                 , timeFormat = dt.timeFormats[[input$dt.timeFormat]]$func
                  )
       
       experiment$analysis$doublingTime[[input$dt.saveName]] <- run
@@ -424,16 +425,69 @@ doublingTimeServer <- function(experiment) {
       getReduceGridWell(info, experiment)
     })
     
+    # this is a bit of hack resetOnNew = FALSE seems to be polluting the DOM
+    lastBrush <- NULL
+    observe({
+      edit.run() 
+      edit.well()
+      lastBrush <<- NULL
+    })
+    
+    edit.brush <- reactive({
+      
+      # hackery to dirty this reactive when lastBrush changes
+      edit.run() 
+      edit.well()
+      
+      brush <- input$dt.edit.brush
+      if (is.null(brush)) {
+        lastBrush
+      } else {
+        lastBrush <<- brush
+        brush
+      }
+    })
+    
     edit.df  <- reactive({
-      run <- edit.run()
+      
+      run   <- edit.run() 
+      well  <- edit.well()
+      brush <- edit.brush()
+      
       if (!is.null(run)) {
         wells <- experiment$map$well
-        rows  <- wells %in% edit.well()
+        rows  <- wells %in% well 
         
         if (any(rows)) {
-          experiment$map[rows, c('time', run$value, run$mapName)]
+          df    <- experiment$map[rows, c('time', run$value, run$mapName)] 
+          
+          if(!is.null(brush)) { 
+            pts <- brushedPoints( df
+                                , brush
+                                , xvar = 'time'
+                                , yvar = run$value
+                                )
+            
+            df[run$mapName] <- row.names(df) %in% row.names(pts)
+          }
+          
+          df
         }
+        
       }
+    })
+    
+    edit.dt  <- reactive({
+      run <- edit.run()
+      df  <- edit.df()
+      
+      if (!is.null(df)) {
+        filt  <- df[[run$mapName]]
+        time  <- df$time[filt]
+        od    <- df[[run$value]][filt]
+        fitDT(od, time)
+      }
+      
     })
     
     output$dt.edit <- renderPlot({
@@ -441,7 +495,7 @@ doublingTimeServer <- function(experiment) {
       df  <- edit.df()
         
       if (!is.null(df)) {
-        dt      <- experiment$reduce[edit.well(), run$reduceName]
+        dt      <- edit.dt()
         startOD <- min( df[df[[run$mapName]], run$value] )
         startT  <- min( df[df[[run$mapName]], 'time'] )
         
@@ -459,7 +513,7 @@ doublingTimeServer <- function(experiment) {
           ymax <- max(df[[run$value]])
         }
         
-        ggplot(df, aes(x = time)) + 
+        ggplot(df, aes(x = run$timeFormat(time))) + 
           geom_line(aes_string(y = modl), color = "#00B0F6") +
           geom_point( aes_string( y     = val
                                 , color = run$mapName
@@ -467,14 +521,40 @@ doublingTimeServer <- function(experiment) {
                     ) +
           scale_color_manual(values = c("#999999", "#00B0F6")) +
           theme(legend.position = "none") + 
+          xlab("Time") + 
           ylim(ymin, ymax)
       }
         
       
     })
     
-    output$dt.DoublingTime <- renderPrint({
-      print(input$dt.edit.brush)
+    output$dt.doublingTime <- renderPrint({
+      run  <- edit.run()
+      well <- edit.well()
+      if (!is.null(run) && !is.na(well)) {
+        run$timeFormat( edit.dt() )
+      }
+
+    })
+    
+    output$dt.saveButtonUI <- renderUI({
+      well  <- edit.well()
+      
+      if (!is.null(well) & !is.null(edit.brush())) {
+        actionButton('dt.save', 'Save', class = "btn btn-lg action-button btn-block shiny-bound-input")  
+      }
+    })
+    
+    observeEvent(input$dt.save, {
+      
+      run   <- edit.run() 
+      well  <- edit.well()
+      wells <- experiment$map$well
+      rows  <- wells %in% well 
+      df    <- edit.df()
+      
+      experiment$map[rows, run$mapName] <- df[run$mapName]
+      
     })
 
   }

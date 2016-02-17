@@ -7,6 +7,7 @@ apoIndex <- function(experiment, growthChannel = "OD600", rosChannel = "DHE", in
 
 apoindexUI <- function(experiment) {
   h2("apoIndex")
+  p("Comming soon.")
 }
 
 apoindexServer <- function(experiment) {
