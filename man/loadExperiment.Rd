@@ -8,37 +8,38 @@ loadExperiment(path = getwd(), design = loadDesign(path, "design.yaml",
   findFiles = findFiles), findFiles = TRUE)
 }
 \arguments{
-\item{path}{A path to a directory where source files and (optionally) a
+\item{path}{A path to a directory where source files and (optionally) a 
 design file can be found.  Defaults to the current working directory.}
 
 \item{design}{A design object, usually created by \code{\link{loadDesign}}. 
-By default an experimental design will be loaded from the first file found
+By default an experimental design will be loaded from the first file found 
 in the \code{projectPath} that has a name containing 'design.yaml'.}
 
-\item{findFiles}{Boolean.  If TRUE, the paths to the design file and data
-files can be complete file names or patterns to use to find a file in the
-project path; if no exact file name match is found then the first file
+\item{findFiles}{Boolean.  If TRUE, the paths to the design file and data 
+files can be complete file names or patterns to use to find a file in the 
+project path; if no exact file name match is found then the first file 
 which fits the pattern is picked.}
 }
 \value{
-An experiment object that serves as input to downstream
-  analysis functions.
+An experiment object that serves as input to downstream analysis
+  functions.
 }
 \description{
 This function loads an experimental design and source data files described by
-that design.  Both are checked for validity and consistency.  It returns an
-experiment object (a list), which is used as the input for all downstream
+that design.  Both are checked for validity and consistency.  It returns an 
+experiment object (a list), which is used as the input for all downstream 
 analysis functions.
 }
 \details{
-Several vignettes are included with this package to fully document
-  the options for input files.  Run \code{vignette('design-files')} for a
+Several vignettes are included with this package to fully document 
+  the options for input files.  Run \code{vignette('design-files')} for a 
   description of the design file format.  Run \code{vignette('source-files')}
   for a description of supported input file formats and loader functions.
 }
 \seealso{
-\code{\link{loadDesign}} for finer control over loading a design
-  from a file or a list, \code{\link{newDesign}} for creating a template
-  design.yaml file.
+\code{\link{loadDesign}} for finer control over loading a design 
+  from a file or a list, \code{\link{newDesign}} for creating a template 
+  design.yaml file, \code{\link{viewExperiment}} for an interactive viewer
+  shiny gadget.
 }
 

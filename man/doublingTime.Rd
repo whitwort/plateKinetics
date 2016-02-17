@@ -29,13 +29,6 @@ Alternatively, use filterFuncs to pass in a list of functions directly.}
 
 \item{filterFuncs}{A list of OD filter functions.  Each should take an od
 vector as the sole argument.  Alternatively, specify filters.}
-
-\item{timeFormat}{A character vector with the name of a time formatting 
-function.  See \code{\link{dt.timeFormats}} for options. 
-Alternatively, use formatFunc to pass in a formatting function directly.}
-
-\item{formatFunc}{A time formatting function.  Should take the doubling time
-value as the sole argument.  Alternatively, specify a timeFormat.}
 }
 \value{
 An updated experiment object with new/updated columns on $map and 

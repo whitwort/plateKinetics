@@ -6,28 +6,28 @@ default.plugins <- list( factors    = list( id     = 'factors'
                                           , server = factorServer
                                           , icon   = icon("tags")
                                           )
-                       , apoindex   = list( id     = 'apoindex'
-                                          , name   = 'apoIndex'
-                                          , ui     = apoindexUI
-                                          , server = apoindexServer
-                                          , icon   = icon("line-chart")
-                                          )
                        , doubling   = list( id     = 'doublingtime'
                                           , ui     = doublingTimeUI
                                           , server = doublingTimeServer
                                           , name   = 'Doubling time'
                                           , icon   = icon('signal')
                                           )
+                       , apoindex   = list( id     = 'apoindex'
+                                          , name   = 'apoIndex'
+                                          , ui     = apoindexUI
+                                          , server = apoindexServer
+                                          , icon   = icon("line-chart")
+                                          )
                        , mapviewer  = list( id     = 'mapview' 
-                                          , name   = 'Kinetics'
+                                          , name   = 'Kinetics (map)'
                                           , ui     = mapUI
                                           , server = mapServer
                                           , icon   = icon("clock-o")
                                           )
                        , reduceview = list( id     = 'reduceview'
-                                          , name   = 'Factors'
-                                          , ui     = function(experiment) { reduceUI(experimeent, id)    }
-                                          , server = function(exerpiment) { reduceServer(experiment, id) }
+                                          , name   = 'Factors (reduce)'
+                                          , ui     = reduceUI
+                                          , server = reduceServer
                                           , icon   = icon("bar-chart")
                                           )
                        , resultabs  = list( id     = 'resulttables'

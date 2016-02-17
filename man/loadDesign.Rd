@@ -44,7 +44,5 @@ Several vignettes are included with this package to fully document
 \seealso{
 See \code{\link{newDesign}} for creating a template design.yaml
   file.
- 
- @export
 }
 

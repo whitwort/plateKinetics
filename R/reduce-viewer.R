@@ -1,9 +1,9 @@
 
-reduceUI <- function(experiment, id) {
+reduceUI <- function(experiment) {
   
 }
 
-reduceServer <- function(experiment, id) {
+reduceServer <- function(experiment) {
   function(input, output, session) {
     
   }
