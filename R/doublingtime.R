@@ -462,7 +462,9 @@ doublingTimeServer <- function(experiment) {
           df    <- experiment$map[rows, c('time', run$value, run$mapName)] 
           
           if(!is.null(brush)) { 
-            pts <- brushedPoints( df
+            pdf <- df
+            pdf$time <- run$timeFormat(df$time)
+            pts <- brushedPoints( pdf
                                 , brush
                                 , xvar = 'time'
                                 , yvar = run$value
