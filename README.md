@@ -1,6 +1,6 @@
 # plateKinetics
 
-This package provides a set of tools for analyzing absorbance and fluorescence intensity data recorded over time in multiwell plate format. Tools are include to help with optimized doubling time calculations as well as data annotation and visualization.
+This package provides a set of tools for analyzing absorbance and fluorescence intensity data recorded over time in multi-well plate. Tools are include to help with optimized doubling time calculations as well as data annotation and visualization.
 
 ## Installing
 
@@ -10,7 +10,7 @@ To install the latest development version of this package, including vignettes a
 devtools::install_github('whitwort/plateKinetics', build_vignettes = TRUE)
 ```
 
-Run `r install.packages("devtools")` first if you don't have it installed.
+Run `r install.packages("devtools")` first if you don't have it.
 
 ## Getting started
 
