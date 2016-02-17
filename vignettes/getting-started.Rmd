@@ -7,4 +7,50 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-TODO...
+## Installation
+
+To install the latest development version of this package, including vignettes and guides:
+
+```{r eval=FALSE}
+devtools::install_github('whitwort/plateKinetics', build_vignettes = TRUE)
+```
+
+You should now be able to load the package by running:
+
+```{r eval=FALSE}
+library(plateKinetics)
+```
+
+## Getting started
+
+The easiest way to get started is to make a copy of one of the example projects in your current working directory.  To grab the default example, which uses space deliminted input files, you can run:
+
+```{r eval=FALSE}
+template()
+```
+
+Alternatively, if you'd like to grab the example Magellan project, you can run:
+
+```{r eval=FALSE}
+template('magellan')
+```
+
+You will now have three new files in your working directory.  The first is the design file (ending in `.yaml`).  This file describes the structure of your experiment.  The basics of how this file is formatted should be pretty self-explanatory, but for a full description see the 'design-files' vignette (run `vignette('design-files')`).
+
+The other two files are data files.  You can see they are specified in the `channels` section of the design file and they will be loaded into R using the function specified by the `loader` variable.  A full description of possible input formats is described in the `source-files` vignette (run `vignette('source-files')`).
+
+Once you have all the files you need for your project setup in your current working directory, the next step is to load the design and source data into an experiment object.  You do that with `loadExperiment`; because all of our files are in the current path, that's as simple as running:
+
+```{r eval=FALSE}
+exp <- loadExperiment()
+```
+
+You can now pass the experiment object into other analysis functions or use it to launch the interactive viewer app.  To do that, run:
+
+```{r eval=FALSE}
+viewExperiment(exp)
+```
+
+## More information
+
+See the package documentation (`?plateKinetics`) and other vignettes (`vignette(package = 'plateKinetics')`) for more detailed information.

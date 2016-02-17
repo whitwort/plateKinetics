@@ -64,8 +64,6 @@ list( loader   = "read.table"
     )
 ```
 
-A more complex example can be found the `example/` sub-directory where the package is installed.
-
 ## Describing wells
 
 There are two places in a design file where you'll need to describe sets of wells: the top level `wells:` entry and within factor blocks.  In both contexts there is some syntatic sugar available to make it easy to describe complex setups.

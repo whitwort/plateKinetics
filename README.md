@@ -21,7 +21,9 @@ library(plateKinetics)
 vignette('getting-started')
 ```
 
-Or if you'd rather jump right in, see the help page for the main entry point function `loadExperiment`.
+## Versions
+
+0.1 Initial release.  Includes doublingTime calculation and some basic visualization tools.
 
 ## License
 

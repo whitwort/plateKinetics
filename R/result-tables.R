@@ -13,9 +13,9 @@ resultUI <- function(experiment) {
   
   tagList( fluidRow( box( fluidRow( column( 9, mapText)
                                   , column( 3
-                                          , downloadButton( 'rt.dowload.map'
-                                                          , "Download map table"
-                                                          )
+                                          # , downloadButton( 'rt.dowload.map'
+                                          #                 , "Download map table"
+                                          #                 )
                                           )
                                   )
                         , hr()
@@ -27,10 +27,10 @@ resultUI <- function(experiment) {
                    )
          , fluidRow( box( fluidRow( column( 9, redText)
                                   , column( 3
-                                          , downloadButton( 'rt.dowload.reduce'
-                                                          , "Download reduce table"
-                                                          , class = "btn-block"
-                                                          )
+                                          # , downloadButton( 'rt.dowload.reduce'
+                                          #                 , "Download reduce table"
+                                          #                 , class = "btn-block"
+                                          #                 )
                                           )
                                   )
                         , hr()

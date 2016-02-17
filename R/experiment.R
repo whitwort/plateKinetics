@@ -462,6 +462,28 @@ platforms <- list( "4"    = platformLabels( 2,  2)
                  , "6144" = platformLabels(64, 96)
                  )
 
+#' Copy files from an example project
+#' 
+#' Calling this function will not overwrite existing files by the same name.
+#' 
+#' @param template The name of the example to use.  Current options are
+#'   'default' for a project with space delimited input files or 'magellan' for
+#'   a project where data are read with the \code{\link{read.magellan}}
+#'   function.
+#' @param dest The destination path.  Defaults to current working directory.
+#'   
+#' @export
+template <- function(template = 'default', dest = getwd()) {
+  packagePath <- find.package('plateKinetics')
+  templPath   <- file.path(packagePath, 'examples', template)
+  files       <- list.files(templPath)
+  file.copy( file.path(templPath, files)
+           , file.path(dest, files)
+           )
+  
+  invisible()
+}
+
 ## implementation ##
 expandFactor <- function(factor, platform) { 
   c( mapply( expandValues

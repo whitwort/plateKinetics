@@ -94,8 +94,8 @@ viewUI <- function(experiment, plugins) {
                , dashboardSidebar( sidebarMenu( homeMenu
                                               , pluginsMenu
                                               )
-                                 , hr()
-                                 , p("Closing the viewer will return the updated experiment object.")
+                                 # , hr()
+                                 # , p("Closing the viewer will return the updated experiment object.")
                                  , fluidRow( column( 10
                                                    , actionButton( 'close'
                                                                  , "Close"
@@ -116,12 +116,13 @@ viewServer <- function(experiment, plugins) {
     
     #reactiveExperiment <- makeReactiveBinding(experiment)
     
-    reactExp <- reactiveValues( design  = experiment$design
-                              , data    = experiment$data
-                              , factors = experiment$factors
-                              , map     = experiment$map
-                              , reduce  = experiment$reduce
-                              , varName = experiment$varName
+    reactExp <- reactiveValues( design   = experiment$design
+                              , data     = experiment$data
+                              , factors  = experiment$factors
+                              , map      = experiment$map
+                              , reduce   = experiment$reduce
+                              , varName  = experiment$varName
+                              , analysis = experiment$analysis
                               )
     
     for (plugin in plugins) {

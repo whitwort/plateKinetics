@@ -9,7 +9,7 @@ vignette: >
 
 ## Introduction
 
-This vignette describes the possible source file formats you can use when loading plate reader data into an experiment.  The `loader` function given in your [design file](design-files.html) should return a `data.frame` formatted in one of the four ways described below.  
+This vignette describes the possible source file formats you can use when loading plate reader data into an experiment.  The `loader` function given in your design file should return a `data.frame` formatted in one of the four ways described below.  
 
 In all cases, each source should contain data for one and only one channel (defined under `channels` in the design file).
 
@@ -84,5 +84,5 @@ The column order does not matter, however all wells given in the design must be 
 
 Although the examples given here all assume that source data is being loaded from local files by the `loader` function, the design of the framework allows for flexibility.
 
-For example, a custom `loader` function could easily read data from a database or URL.  The framework simply passes the values of each channel definition in the [design file](design-files.html) off to the loader.  One important thing to note, however, is that you will probably want to set `findFiles = FALSE` if your loader isn't expecting channel values to be local files in the working directory.
+For example, a custom `loader` function could easily read data from a database or URL.  The framework simply passes the values of each channel definition in the design file off to the loader.  One important thing to note, however, is that you will probably want to set `findFiles = FALSE` if your loader isn't expecting channel values to be local files in the working directory.
 

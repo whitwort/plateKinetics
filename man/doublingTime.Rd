@@ -17,26 +17,32 @@ doublingTime(experiment, value, mapName = paste(reduceName, "included", sep =
 density.}
 
 \item{mapName}{The name of the column on the $map data.frame to use to save 
-information about which time points were included when calculating the
+information about which time points were included when calculating the 
 doubling time.}
 
 \item{reduceName}{The name of the column on the $reduce data.frame to use to 
 save the doubling time for each well.}
 
 \item{filters}{A character vector with the ids of filters to use.  See 
-\code{\link{dt.filters}} for available filters. 
-Alternatively, use filterFuncs to pass in a list of functions directly.}
+\code{\link{dt.filters}} for available filters. Alternatively, use
+filterFuncs to pass in a list of functions directly.}
 
-\item{filterFuncs}{A list of OD filter functions.  Each should take an od
+\item{filterFuncs}{A list of OD filter functions.  Each should take an od 
 vector as the sole argument.  Alternatively, specify filters.}
+
+\item{timeFormat}{A chacater vector naming the time formatter to use.  See
+\code{\link{dt.timeFromats}} for available options.  Alternatively use
+formatFunc to pass the function in directly.}
+
+\item{formatFunc}{A time formatter function.}
 }
 \value{
 An updated experiment object with new/updated columns on $map and 
   $reduce.
 }
 \description{
-This function calculates doubling times for microbial cultures using time
-series data for each well in an experiment.  By default this analysis
+This function calculates doubling times for microbial cultures using time 
+series data for each well in an experiment.  By default this analysis 
 proceedure picks optical density readings using lag and plateau phase filters
 and fits a log model.
 }
