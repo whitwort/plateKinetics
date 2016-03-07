@@ -474,8 +474,8 @@ platforms <- list( "4"    = platformLabels( 2,  2)
 #'   
 #' @export
 template <- function(template = 'default', dest = getwd()) {
-  packagePath <- find.package('plateKinetics')
-  templPath   <- file.path(packagePath, 'examples', template)
+  packagePath <- system.file('examples', package = 'plateKinetics')
+  templPath   <- file.path(packagePath, template)
   files       <- list.files(templPath)
   file.copy( file.path(templPath, files)
            , file.path(dest, files)
