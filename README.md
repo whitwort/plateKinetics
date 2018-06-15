@@ -27,4 +27,4 @@ vignette('getting-started')
 
 ## License
 
-Copyright © 2016 Gregg Whitworth and licensed under [GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
+Copyright © 2018 Gregg Whitworth and licensed under [GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).

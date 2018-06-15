@@ -86,7 +86,7 @@ calculateDT <- function(well, experiment, value, mapName) {
 }
 
 fitDT <- function(od, time) {
-  if (length(od) > 0) {
+  if (length(na.omit(od)) > 2) {
     fit <- lm(log(od) ~ time)
     log(2) / coef(fit)["time"]
   } else {
